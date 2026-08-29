@@ -1,0 +1,130 @@
+@page "/admin/moderation"
+@attribute [Authorize(Roles = "Admin")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject AdminService AdminService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>AutoLink | Listing Moderation</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Listing Moderation</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Review marketplace listings to ensure quality, compliance, and accurate pricing
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadListingsAsync">
+        Refresh
+    </MudButton>
+</div>
+
+<MudPaper Elevation="0" Class="apple-card pa-6">
+    @if (_loading)
+    {
+        <div class="d-flex justify-center my-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <MudTable Items="_listings" Hover="true" Striped="false" Dense="true" Elevation="0">
+            <HeaderContent>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">PHOTO</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">VEHICLE</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">DEALERSHIP</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">PRICE</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">STATUS</MudTh>
+                <MudTh Class="text-right" style="color: #86868B; font-weight: 600; font-size: 0.75rem;">ACTIONS</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <div class="rounded-lg overflow-hidden" style="width: 72px; height: 48px;">
+                        <img src="@context.PrimaryImageUrl" alt="Car" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                </MudTd>
+                <MudTd>
+                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@context.Year @context.Make @context.Model</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Mileage.ToString("N0") mi • @context.Color</MudText>
+                </MudTd>
+                <MudTd Class="font-weight-medium">
+                    @context.DealerName
+                </MudTd>
+                <MudTd Class="font-weight-bold text-primary">
+                    $@context.Price.ToString("N0")
+                </MudTd>
+                <MudTd>
+                    <MudChip T="string" Size="Size.Small" Color="@(context.Status == VehicleStatus.Available ? Color.Success : Color.Warning)" Variant="Variant.Filled" Class="apple-pill font-weight-bold">
+                        @context.Status
+                    </MudChip>
+                </MudTd>
+                <MudTd Class="text-right">
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Class="apple-btn" OnClick="@(() => Navigation.NavigateTo($"/vehicles/{context.Id}"))">
+                        Inspect →
+                    </MudButton>
+
+                    @if (context.Status == VehicleStatus.Available)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" Class="apple-btn ml-1" OnClick="@(() => ModerateListingAsync(context.Id, VehicleStatus.Suspended))">
+                            Suspend
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" Class="apple-btn ml-1" OnClick="@(() => ModerateListingAsync(context.Id, VehicleStatus.Available))">
+                            Approve
+                        </MudButton>
+                    }
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    private bool _loading = true;
+    private List<VehicleDto> _listings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadListingsAsync();
+    }
+
+    private async Task LoadListingsAsync()
+    {
+        _loading = true;
+        var res = await AdminService.GetAllListingsAsync();
+        if (res.Success && res.Data != null)
+        {
+            _listings = res.Data;
+        }
+        _loading = false;
+    }
+
+    private async Task ModerateListingAsync(int vehicleId, VehicleStatus newStatus)
+    {
+        var dto = new ModerateListingDto
+        {
+            VehicleId = vehicleId,
+            NewStatus = newStatus,
+            ModerationNotes = $"Listing status updated to {newStatus} by Administrator."
+        };
+
+        var res = await AdminService.ModerateListingAsync(dto);
+        if (res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Success);
+            await LoadListingsAsync();
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to moderate listing", Severity.Error);
+        }
+    }
+}

@@ -1,0 +1,223 @@
+@page "/discovery"
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject VehicleService VehicleService
+@inject NavigationManager Navigation
+
+<PageTitle>AutoLink | Vehicle Inventory Discovery</PageTitle>
+
+<div class="mb-6 d-flex justify-space-between align-center flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Marketplace Discovery</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Explore @_totalCount certified vehicles across verified dealerships
+        </MudText>
+    </div>
+
+    <!-- Quick Sorting, Mobile Filter Toggle & Reset -->
+    <div class="d-flex align-center gap-2 flex-wrap">
+        <!-- Mobile Filter Toggle Button -->
+        <MudButton Variant="Variant.Outlined" 
+                   Color="Color.Primary" 
+                   Class="d-md-none apple-btn" 
+                   StartIcon="@Icons.Material.Filled.FilterList"
+                   OnClick="@(() => _showMobileFilters = !_showMobileFilters)">
+            @(_showMobileFilters ? "Hide Filters" : "Filter Results")
+        </MudButton>
+
+        <MudSelect T="string" Label="Sort By" @bind-Value="_filter.SortBy" SelectedValuesChanged="ApplyFilterAsync" Margin="Margin.Dense" Variant="Variant.Outlined" Style="min-width: 170px;">
+            <MudSelectItem Value="@("DateDesc")">Newest Arrivals</MudSelectItem>
+            <MudSelectItem Value="@("PriceAsc")">Price: Low to High</MudSelectItem>
+            <MudSelectItem Value="@("PriceDesc")">Price: High to Low</MudSelectItem>
+            <MudSelectItem Value="@("YearDesc")">Year: Newest First</MudSelectItem>
+            <MudSelectItem Value="@("MileageAsc")">Lowest Mileage</MudSelectItem>
+            <MudSelectItem Value="@("Popular")">Most Viewed</MudSelectItem>
+        </MudSelect>
+
+        <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.Refresh" OnClick="ResetFiltersAsync">
+            Reset
+        </MudButton>
+    </div>
+</div>
+
+<MudGrid Spacing="4">
+    <!-- Left Filter Sidebar (Responsive on Mobile) -->
+    <MudItem xs="12" md="3" Class="@(_showMobileFilters ? "d-block" : "d-none d-md-block")">
+        <MudPaper Elevation="0" Class="apple-card pa-5 sticky-top" Style="top: 84px;">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold">Filter Inventory</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Tune" Color="Color.Primary" Size="Size.Small" />
+            </div>
+
+            <!-- Search Term -->
+            <MudTextField T="string"
+                          Label="Make, Model, Keyword"
+                          @bind-Value="_filter.SearchTerm"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          OnAdornmentClick="ApplyFilterAsync"
+                          OnKeyUp="@(async (e) => { if (e.Key == "Enter") await ApplyFilterAsync(); })"
+                          Margin="Margin.Dense"
+                          Variant="Variant.Outlined"
+                          Class="mb-4" />
+
+            <!-- Price Range -->
+            <div class="mb-4">
+                <div class="d-flex justify-space-between align-center mb-1">
+                    <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">MAX PRICE</MudText>
+                    <MudText Typo="Typo.caption" Class="font-weight-bold text-primary">$@(SliderMaxPrice.ToString("N0"))</MudText>
+                </div>
+                <MudSlider T="decimal"
+                           @bind-Value="SliderMaxPrice"
+                           Min="10000m"
+                           Max="250000m"
+                           Step="5000m"
+                           Color="Color.Primary"
+                           ValueLabel="false" />
+            </div>
+
+            <!-- Body Style -->
+            <MudSelect T="BodyType?" Label="Body Style" @bind-Value="_filter.BodyType" Clearable="true" Margin="Margin.Dense" Variant="Variant.Outlined" Class="mb-4">
+                @foreach (BodyType bt in Enum.GetValues(typeof(BodyType)))
+                {
+                    <MudSelectItem Value="@((BodyType?)bt)">@bt</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- Fuel Type -->
+            <MudSelect T="FuelType?" Label="Fuel & Powertrain" @bind-Value="_filter.FuelType" Clearable="true" Margin="Margin.Dense" Variant="Variant.Outlined" Class="mb-4">
+                @foreach (FuelType ft in Enum.GetValues(typeof(FuelType)))
+                {
+                    <MudSelectItem Value="@((FuelType?)ft)">@ft</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- Transmission -->
+            <MudSelect T="TransmissionType?" Label="Transmission" @bind-Value="_filter.Transmission" Clearable="true" Margin="Margin.Dense" Variant="Variant.Outlined" Class="mb-4">
+                @foreach (TransmissionType tt in Enum.GetValues(typeof(TransmissionType)))
+                {
+                    <MudSelectItem Value="@((TransmissionType?)tt)">@tt</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- Min Year -->
+            <MudNumericField T="int?" Label="Min Year" @bind-Value="_filter.MinYear" Min="2000" Max="2026" Margin="Margin.Dense" Variant="Variant.Outlined" Class="mb-4" />
+
+            <!-- Max Mileage -->
+            <MudNumericField T="int?" Label="Max Mileage (mi)" @bind-Value="_filter.MaxMileage" Min="0" Step="5000" Margin="Margin.Dense" Variant="Variant.Outlined" Class="mb-4" />
+
+            <!-- City -->
+            <MudTextField T="string" Label="City / Location" @bind-Value="_filter.City" Margin="Margin.Dense" Variant="Variant.Outlined" Class="mb-5" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="apple-btn" StartIcon="@Icons.Material.Filled.Search" OnClick="ApplyFilterAsync">
+                Apply Filters
+            </MudButton>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Right Results Section -->
+    <MudItem xs="12" md="9">
+        @if (_loading)
+        {
+            <div class="d-flex justify-center my-16">
+                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            </div>
+        }
+        else if (_vehicles.Count == 0)
+        {
+            <MudPaper Elevation="0" Class="apple-card pa-12 text-center my-4">
+                <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+                <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">No Vehicles Match Your Criteria</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+                    Try adjusting your budget slider, selecting additional body styles, or resetting filters.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn px-6" OnClick="ResetFiltersAsync">
+                    Clear All Filters
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudGrid Spacing="4">
+                @foreach (var vehicle in _vehicles)
+                {
+                    <MudItem xs="12" sm="6" lg="4">
+                        <AutoLink.Client.Components.VehicleCard Vehicle="vehicle" />
+                    </MudItem>
+                }
+            </MudGrid>
+
+            <!-- Pagination -->
+            @if (_totalPages > 1)
+            {
+                <div class="d-flex justify-center my-8">
+                    <MudPagination Count="_totalPages"
+                                   Selected="_filter.PageNumber"
+                                   SelectedChanged="OnPageChangedAsync"
+                                   Color="Color.Primary"
+                                   Class="apple-pill"
+                                   Variant="Variant.Filled" />
+                </div>
+            }
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    [SupplyParameterFromQuery(Name = "search")] public string? QuerySearch { get; set; }
+    [SupplyParameterFromQuery(Name = "bodyType")] public int? QueryBodyType { get; set; }
+    [SupplyParameterFromQuery(Name = "fuelType")] public int? QueryFuelType { get; set; }
+
+    private bool _showMobileFilters = false;
+    private VehicleFilterDto _filter = new() { PageSize = 9 };
+    private decimal SliderMaxPrice
+    {
+        get => _filter.MaxPrice ?? 250000m;
+        set => _filter.MaxPrice = value;
+    }
+    private List<VehicleDto> _vehicles = new();
+    private int _totalCount;
+    private int _totalPages = 1;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(QuerySearch)) _filter.SearchTerm = QuerySearch;
+        if (QueryBodyType.HasValue && Enum.IsDefined(typeof(BodyType), QueryBodyType.Value)) _filter.BodyType = (BodyType)QueryBodyType.Value;
+        if (QueryFuelType.HasValue && Enum.IsDefined(typeof(FuelType), QueryFuelType.Value)) _filter.FuelType = (FuelType)QueryFuelType.Value;
+
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        var res = await VehicleService.GetVehiclesAsync(_filter);
+        if (res.Success && res.Data != null)
+        {
+            _vehicles = res.Data.Items;
+            _totalCount = res.Data.TotalCount;
+            _totalPages = res.Data.TotalPages;
+        }
+        _loading = false;
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        _filter.PageNumber = 1;
+        await LoadDataAsync();
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        _filter = new VehicleFilterDto { PageSize = 9 };
+        await LoadDataAsync();
+    }
+
+    private async Task OnPageChangedAsync(int newPage)
+    {
+        _filter.PageNumber = newPage;
+        await LoadDataAsync();
+    }
+}

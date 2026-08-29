@@ -1,0 +1,147 @@
+@page "/register-seller"
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>AutoLink | Dealership SaaS Sign Up</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6 mt-md-12 mb-12">
+    <MudPaper Elevation="0" Class="apple-card pa-8 pa-md-12">
+        <div class="text-center mb-8">
+            <div class="pa-3 rounded-circle d-inline-flex align-center justify-center bg-primary-subtle mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Large" Color="Color.Primary" />
+            </div>
+            <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Register Dealership</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Join our automotive network to list inventory, manage test drives, and scale your sales
+            </MudText>
+        </div>
+
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudGrid Spacing="3">
+                <!-- Dealership Business Info -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold text-primary">1. Dealership Information</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Dealership / Business Name" @bind-Value="_model.BusinessName" Required="true" RequiredError="Business name is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Dealer License Number" @bind-Value="_model.RegistrationNumber" Required="true" RequiredError="Dealer registration number is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Dealership Address" @bind-Value="_model.Address" Required="true" RequiredError="Address is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="City" @bind-Value="_model.City" Required="true" RequiredError="City is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <!-- Contact & Account -->
+                <MudItem xs="12" Class="mt-2">
+                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold text-primary">2. Primary Contact & Security</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Contact Person Name" @bind-Value="_model.ContactPersonName" Required="true" RequiredError="Contact name is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Business Phone" @bind-Value="_model.PhoneNumber" Required="true" RequiredError="Phone number is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Business Email (Login ID)" @bind-Value="_model.Email" Required="true" RequiredError="Email is required" InputType="InputType.Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Account Password" @bind-Value="_model.Password" Required="true" RequiredError="Password is required (min 6 characters)" InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <!-- Subscription Tier Selection -->
+                <MudItem xs="12" Class="mt-2">
+                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold text-primary">3. Initial Plan Selection</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudRadioGroup T="SubscriptionTier" @bind-Value="_model.RequestedTier">
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Elevation="0" Class="@($"apple-card pa-4 text-center cursor-pointer {(_model.RequestedTier == SubscriptionTier.Free ? "border-primary" : "")}")" Style="@(_model.RequestedTier == SubscriptionTier.Free ? "border: 2px solid #0071E3;" : "")" @onclick="@(() => _model.RequestedTier = SubscriptionTier.Free)">
+                                    <MudRadio Value="SubscriptionTier.Free" Color="Color.Primary">Starter</MudRadio>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-1">Up to 5 Listings • Basic Inbox</MudText>
+                                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold mt-2">$0 / mo</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Elevation="0" Class="@($"apple-card pa-4 text-center cursor-pointer {(_model.RequestedTier == SubscriptionTier.Standard ? "border-primary" : "")}")" Style="@(_model.RequestedTier == SubscriptionTier.Standard ? "border: 2px solid #0071E3;" : "")" @onclick="@(() => _model.RequestedTier = SubscriptionTier.Standard)">
+                                    <MudRadio Value="SubscriptionTier.Standard" Color="Color.Primary">Growth</MudRadio>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-1">Up to 25 Listings • Analytics</MudText>
+                                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold mt-2 text-primary">$149 / mo</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Elevation="0" Class="@($"apple-card pa-4 text-center cursor-pointer {(_model.RequestedTier == SubscriptionTier.Premium ? "border-primary" : "")}")" Style="@(_model.RequestedTier == SubscriptionTier.Premium ? "border: 2px solid #0071E3;" : "")" @onclick="@(() => _model.RequestedTier = SubscriptionTier.Premium)">
+                                    <MudRadio Value="SubscriptionTier.Premium" Color="Color.Primary">Pro Enterprise</MudRadio>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-1">Up to 100 Listings • AI Match</MudText>
+                                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold mt-2">$399 / mo</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    </MudRadioGroup>
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-6">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               FullWidth="true"
+                               Size="Size.Large"
+                               Class="apple-btn py-3"
+                               OnClick="SubmitRegisterAsync"
+                               Disabled="@_submitting">
+                        @if (_submitting)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <span class="ms-2">Submitting Dealership...</span>
+                        }
+                        else
+                        {
+                            <span>Register Dealership</span>
+                        }
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+
+        <div class="text-center mt-8">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Already registered? 
+                <MudLink Href="/login" Color="Color.Primary" Class="font-weight-bold">Sign In</MudLink>
+            </MudText>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+    private RegisterSellerDto _model = new() { RequestedTier = SubscriptionTier.Standard };
+
+    private async Task SubmitRegisterAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _submitting = true;
+        var res = await AuthService.RegisterSellerAsync(_model);
+        _submitting = false;
+
+        if (res.Success)
+        {
+            Snackbar.Add("Dealership registered! Your account is submitted for administrator verification.", Severity.Success);
+            Navigation.NavigateTo("/seller/dashboard");
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to submit dealership registration", Severity.Error);
+        }
+    }
+}

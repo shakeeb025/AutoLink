@@ -1,0 +1,88 @@
+@page "/admin/users"
+@attribute [Authorize(Roles = "Admin")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Client.Services
+@inject AdminService AdminService
+
+<PageTitle>AutoLink | User Directory</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">User Directory</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Registered customer buyers, dealership staff, and platform administrators
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadUsersAsync">
+        Refresh
+    </MudButton>
+</div>
+
+<MudPaper Elevation="0" Class="apple-card pa-6">
+    @if (_loading)
+    {
+        <div class="d-flex justify-center my-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <MudTable Items="_users" Hover="true" Striped="false" Dense="true" Elevation="0">
+            <HeaderContent>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">NAME</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">EMAIL</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">ROLE</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">DEALERSHIP</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">TIER</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Class="font-weight-bold">@context.FullName</MudTd>
+                <MudTd Class="text-secondary">@context.Email</MudTd>
+                <MudTd>
+                    <MudChip T="string" Size="Size.Small" Color="@GetRoleColor(context.Role)" Variant="Variant.Filled" Class="apple-pill font-weight-bold">
+                        @context.Role
+                    </MudChip>
+                </MudTd>
+                <MudTd Class="font-weight-medium">
+                    @(string.IsNullOrEmpty(context.DealerName) ? "—" : context.DealerName)
+                </MudTd>
+                <MudTd Class="font-weight-medium">
+                    @(context.SubscriptionTier.HasValue ? context.SubscriptionTier.Value.ToString() : "—")
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    private bool _loading = true;
+    private List<UserInfoDto> _users = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _loading = true;
+        var res = await AdminService.GetUsersAsync();
+        if (res.Success && res.Data != null)
+        {
+            _users = res.Data;
+        }
+        _loading = false;
+    }
+
+    private Color GetRoleColor(string role) => role switch
+    {
+        "Admin" => Color.Error,
+        "Seller" => Color.Primary,
+        "Customer" => Color.Success,
+        _ => Color.Default
+    };
+}

@@ -1,0 +1,128 @@
+@page "/seller/subscription"
+@attribute [Authorize(Roles = "Seller")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject DealerService DealerService
+@inject ISnackbar Snackbar
+
+<PageTitle>AutoLink | Dealership SaaS Subscriptions</PageTitle>
+
+<div class="mb-8">
+    <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Dealership SaaS Subscriptions</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        Scale your inventory listing capacity, priority matching, and dealer CRM suite
+    </MudText>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center my-16">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else
+{
+    <!-- Current Status Banner -->
+    <MudPaper Elevation="0" Class="apple-card pa-8 mb-8 border border-primary" Style="background: radial-gradient(circle at top right, rgba(0, 113, 227, 0.1), transparent 60%);">
+        <div class="d-flex justify-space-between align-center flex-wrap gap-4">
+            <div>
+                <MudText Typo="Typo.caption" Class="font-weight-bold text-primary" Style="letter-spacing: 0.05em; text-transform: uppercase;">ACTIVE SUBSCRIPTION</MudText>
+                <MudText Typo="Typo.h4" Class="font-weight-bold my-1" Style="letter-spacing: -0.02em;">@_currentProfile?.SubscriptionTier Plan</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Capacity: <strong>@_currentProfile?.ActiveListingsCount / @_currentProfile?.MaxListingLimit</strong> Active Listings • Renews: @_currentProfile?.SubscriptionExpiry.ToString("MMM dd, yyyy")
+                </MudText>
+            </div>
+            <div>
+                <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Size="Size.Large" Class="apple-pill font-weight-bold" Icon="@Icons.Material.Filled.Verified">
+                    Verified Dealership
+                </MudChip>
+            </div>
+        </div>
+    </MudPaper>
+
+    <!-- Plans Comparison Grid -->
+    <MudGrid Spacing="4">
+        @foreach (var plan in _plans)
+        {
+            bool isCurrent = _currentProfile?.SubscriptionTier == plan.Tier;
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="0" Class="@($"apple-card h-100 pa-6 d-flex flex-column justify-space-between hover-elevate {(isCurrent ? "border border-primary" : "")}")" Style="@(isCurrent ? "background: rgba(0, 113, 227, 0.03);" : "")">
+                    <div>
+                        <div class="d-flex justify-space-between align-center mb-2">
+                            <MudText Typo="Typo.h5" Class="font-weight-bold" Style="letter-spacing: -0.015em;">@plan.Name</MudText>
+                            @if (isCurrent)
+                            {
+                                <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" Class="apple-pill font-weight-bold">Current Tier</MudChip>
+                            }
+                        </div>
+
+                        <div class="my-4">
+                            <MudText Typo="Typo.h3" Class="font-weight-bold d-inline" Style="letter-spacing: -0.03em;">$@plan.MonthlyPrice.ToString("N0")</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary"> / month</MudText>
+                        </div>
+
+                        <MudDivider Class="my-4" />
+
+                        <MudList T="string" Dense="true" Class="pa-0 mb-6">
+                            <MudListItem Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                                Up to <strong>@plan.MaxListings Active Listings</strong>
+                            </MudListItem>
+                            @foreach (var feat in plan.Features)
+                            {
+                                <MudListItem Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                                    @feat
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </div>
+
+                    @if (isCurrent)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Class="apple-btn py-3" Disabled="true">
+                            Active Subscription
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="apple-btn py-3" OnClick="@(() => UpgradePlanAsync(plan.Tier))">
+                            Upgrade to @plan.Name
+                        </MudButton>
+                    }
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private DealerProfileDto? _currentProfile;
+    private List<SubscriptionPlanDto> _plans = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        var pRes = await DealerService.GetMyProfileAsync();
+        if (pRes.Success && pRes.Data != null) _currentProfile = pRes.Data;
+
+        var planRes = await DealerService.GetSubscriptionPlansAsync();
+        if (planRes.Success && planRes.Data != null) _plans = planRes.Data;
+
+        _loading = false;
+    }
+
+    private async Task UpgradePlanAsync(SubscriptionTier newTier)
+    {
+        var res = await DealerService.UpgradeTierAsync(newTier);
+        if (res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Success);
+            await OnInitializedAsync();
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to upgrade plan", Severity.Error);
+        }
+    }
+}

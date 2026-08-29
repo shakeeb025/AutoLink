@@ -1,0 +1,286 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Infrastructure/AutoLink.Infrastructure.csproj": {}
+  },
+  "projects": {
+    "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/AutoLink.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/AutoLink.Core.csproj",
+        "projectName": "AutoLink.Core",
+        "projectPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/AutoLink.Core.csproj",
+        "packagesPath": "/Users/shakeeb/Desktop/Auto Link/Project/.nuget-packages",
+        "outputPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/shakeeb/Desktop/Auto Link/Project/NuGet.Config",
+          "/Users/shakeeb/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "framework": "net9.0",
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/AutoLink.Shared.csproj": {
+                "projectPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/AutoLink.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.400"
+      },
+      "frameworks": {
+        "net9.0": {
+          "framework": "net9.0",
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.400/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Infrastructure/AutoLink.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Infrastructure/AutoLink.Infrastructure.csproj",
+        "projectName": "AutoLink.Infrastructure",
+        "projectPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Infrastructure/AutoLink.Infrastructure.csproj",
+        "packagesPath": "/Users/shakeeb/Desktop/Auto Link/Project/.nuget-packages",
+        "outputPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Infrastructure/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/shakeeb/Desktop/Auto Link/Project/NuGet.Config",
+          "/Users/shakeeb/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "framework": "net9.0",
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/AutoLink.Core.csproj": {
+                "projectPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/AutoLink.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.400"
+      },
+      "frameworks": {
+        "net9.0": {
+          "framework": "net9.0",
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.InMemory": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.2.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.400/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/AutoLink.Shared.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/AutoLink.Shared.csproj",
+        "projectName": "AutoLink.Shared",
+        "projectPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/AutoLink.Shared.csproj",
+        "packagesPath": "/Users/shakeeb/Desktop/Auto Link/Project/.nuget-packages",
+        "outputPath": "/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/shakeeb/Desktop/Auto Link/Project/NuGet.Config",
+          "/Users/shakeeb/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "framework": "net9.0",
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.400"
+      },
+      "frameworks": {
+        "net9.0": {
+          "framework": "net9.0",
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "System.ComponentModel.Annotations": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
+            "System.Text.Json": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.400/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

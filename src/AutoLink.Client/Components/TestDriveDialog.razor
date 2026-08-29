@@ -1,0 +1,124 @@
+@using AutoLink.Shared.DTOs
+@using AutoLink.Client.Services
+@inject BookingService BookingService
+@inject ISnackbar Snackbar
+
+<MudDialog Class="apple-card pa-2" Style="border-radius: 20px;">
+    <TitleContent>
+        <div class="d-flex align-center gap-2 pt-2 px-2">
+            <div class="pa-2 rounded-circle bg-primary-subtle d-flex align-center justify-center">
+                <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Color="Color.Primary" Size="Size.Small" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.01em;">Schedule Test Drive</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@Vehicle.DealerName • @Vehicle.Year @Vehicle.Make @Vehicle.Model</MudText>
+            </div>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div class="px-2">
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudDatePicker Label="Preferred Date"
+                           @bind-Date="_selectedDate"
+                           MinDate="DateTime.Today.AddDays(1)"
+                           MaxDate="DateTime.Today.AddDays(30)"
+                           Required="true"
+                           RequiredError="Please pick a preferred date"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Class="mb-3 mt-2" />
+
+            <MudSelect T="string" Label="Time Slot" @bind-Value="_preferredTimeSlot" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-3">
+                <MudSelectItem Value="@("09:00 AM - 10:00 AM")">09:00 AM - 10:00 AM</MudSelectItem>
+                <MudSelectItem Value="@("10:00 AM - 11:00 AM")">10:00 AM - 11:00 AM</MudSelectItem>
+                <MudSelectItem Value="@("11:00 AM - 12:00 PM")">11:00 AM - 12:00 PM</MudSelectItem>
+                <MudSelectItem Value="@("01:00 PM - 02:00 PM")">01:00 PM - 02:00 PM</MudSelectItem>
+                <MudSelectItem Value="@("02:00 PM - 03:00 PM")">02:00 PM - 03:00 PM</MudSelectItem>
+                <MudSelectItem Value="@("03:00 PM - 04:00 PM")">03:00 PM - 04:00 PM</MudSelectItem>
+                <MudSelectItem Value="@("04:00 PM - 05:00 PM")">04:00 PM - 05:00 PM</MudSelectItem>
+            </MudSelect>
+
+            <MudTextField T="string"
+                          Label="Contact Phone Number"
+                          @bind-Value="_contactNumber"
+                          Required="true"
+                          RequiredError="Contact number is required"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Phone"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3" />
+
+            <MudTextField T="string"
+                          Label="Notes / License info"
+                          @bind-Value="_notes"
+                          Lines="3"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Placeholder="e.g., Interested in checking cargo space and highway cruise." />
+        </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Class="apple-btn">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Class="apple-btn px-5"
+                   OnClick="SubmitBookingAsync"
+                   Disabled="@(!_isValid || _submitting)">
+            @if (_submitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <span class="ms-2">Submitting...</span>
+            }
+            else
+            {
+                <span>Confirm Request</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter, EditorRequired] public VehicleDetailDto Vehicle { get; set; } = null!;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+
+    private DateTime? _selectedDate = DateTime.Today.AddDays(1);
+    private string _preferredTimeSlot = "10:00 AM - 11:00 AM";
+    private string _contactNumber = string.Empty;
+    private string _notes = string.Empty;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task SubmitBookingAsync()
+    {
+        if (!_selectedDate.HasValue) return;
+
+        _submitting = true;
+        var dto = new CreateTestDriveDto
+        {
+            VehicleId = Vehicle.Id,
+            ScheduledDate = _selectedDate.Value,
+            PreferredTimeSlot = _preferredTimeSlot,
+            CustomerContactNumber = _contactNumber,
+            Notes = _notes
+        };
+
+        var res = await BookingService.RequestTestDriveAsync(dto);
+        _submitting = false;
+
+        if (res.Success)
+        {
+            Snackbar.Add("Test drive requested! Dealership will confirm your slot.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to request test drive. Please ensure you are logged in as a customer.", Severity.Error);
+        }
+    }
+}

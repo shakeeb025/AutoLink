@@ -1,0 +1,65 @@
+@using AutoLink.Shared.DTOs
+
+<MudTooltip Placement="Placement.Top" Arrow="true">
+    <ChildContent>
+        <div class="d-flex align-center px-2 py-1 rounded-pill shadow-sm" style="background-color: @GetBadgeColor(Score); color: white; font-weight: 700; font-size: 0.82rem; backdrop-filter: blur(8px);">
+            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" Class="mr-1" />
+            <span>@Score.ToString("0")% Match</span>
+        </div>
+    </ChildContent>
+    <TooltipContent>
+        @if (Breakdown != null)
+        {
+            <div style="max-width: 280px;" class="py-1">
+                <MudText Typo="Typo.subtitle2" Class="font-weight-bold mb-1">Match Scoring Breakdown</MudText>
+                <div class="d-flex justify-space-between my-1">
+                    <span style="font-size: 0.78rem;">Budget Match (30% max):</span>
+                    <span class="font-weight-bold" style="font-size: 0.78rem;">@Breakdown.BudgetScore.ToString("0.0") / 30</span>
+                </div>
+                <div class="d-flex justify-space-between my-1">
+                    <span style="font-size: 0.78rem;">Body Type (20% max):</span>
+                    <span class="font-weight-bold" style="font-size: 0.78rem;">@Breakdown.BodyTypeScore.ToString("0.0") / 20</span>
+                </div>
+                <div class="d-flex justify-space-between my-1">
+                    <span style="font-size: 0.78rem;">Fuel & Trans (20% max):</span>
+                    <span class="font-weight-bold" style="font-size: 0.78rem;">@Breakdown.FuelTransmissionScore.ToString("0.0") / 20</span>
+                </div>
+                <div class="d-flex justify-space-between my-1">
+                    <span style="font-size: 0.78rem;">Year Range (15% max):</span>
+                    <span class="font-weight-bold" style="font-size: 0.78rem;">@Breakdown.YearScore.ToString("0.0") / 15</span>
+                </div>
+                <div class="d-flex justify-space-between my-1">
+                    <span style="font-size: 0.78rem;">Mileage (15% max):</span>
+                    <span class="font-weight-bold" style="font-size: 0.78rem;">@Breakdown.MileageScore.ToString("0.0") / 15</span>
+                </div>
+
+                @if (Breakdown.MatchReasons != null && Breakdown.MatchReasons.Count > 0)
+                {
+                    <MudDivider Class="my-1" />
+                    <MudText Typo="Typo.caption" Class="d-block font-weight-bold">Highlights:</MudText>
+                    @foreach (var reason in Breakdown.MatchReasons.Take(2))
+                    {
+                        <div style="font-size: 0.72rem; color: #a7f3d0;" class="my-0.5">• @reason</div>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <span>Intelligent Weighted Match Score: @Score.ToString("0")%</span>
+        }
+    </TooltipContent>
+</MudTooltip>
+
+@code {
+    [Parameter] public double Score { get; set; }
+    [Parameter] public MatchBreakdownDto? Breakdown { get; set; }
+
+    private string GetBadgeColor(double score) => score switch
+    {
+        >= 85 => "rgba(16, 185, 129, 0.92)",  // emerald green
+        >= 70 => "rgba(2, 132, 199, 0.92)",   // electric sky blue
+        >= 50 => "rgba(245, 158, 11, 0.92)",  // amber
+        _ => "rgba(107, 114, 128, 0.90)"      // slate gray
+    };
+}

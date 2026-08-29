@@ -1,0 +1,149 @@
+@page "/seller/leads"
+@attribute [Authorize(Roles = "Seller")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject BookingService BookingService
+@inject ISnackbar Snackbar
+
+<PageTitle>AutoLink | Customer Leads CRM</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Customer Leads CRM</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Manage incoming buyer queries, send direct replies, and track communication lifecycle
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadLeadsAsync">
+        Refresh Inbox
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center my-16">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (_leads.Count == 0)
+{
+    <MudPaper Elevation="0" Class="apple-card pa-12 text-center border rounded-xl my-4">
+        <MudIcon Icon="@Icons.Material.Filled.MarkEmailRead" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+        <MudText Typo="Typo.h6" Class="font-weight-bold mb-2">No Inquiries in Inbox</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Customer leads submitted for your vehicles will appear here.</MudText>
+    </MudPaper>
+}
+else
+{
+    <MudGrid Spacing="4">
+        @foreach (var lead in _leads)
+        {
+            <MudItem xs="12">
+                <MudCard Elevation="0" Class="apple-card pa-6 border">
+                    <div class="d-flex justify-space-between align-start mb-3 flex-wrap gap-2">
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">
+                                @lead.CustomerName — @lead.VehicleTitle
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Email: @lead.CustomerEmail • Phone: @(string.IsNullOrEmpty(lead.CustomerPhone) ? "Not provided" : lead.CustomerPhone) • Received: @lead.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                            </MudText>
+                        </div>
+                        <MudChip T="string" Color="@(lead.Status == InquiryStatus.New ? Color.Warning : Color.Success)" Variant="Variant.Filled" Size="Size.Small" Class="apple-pill font-weight-bold">
+                            @lead.Status
+                        </MudChip>
+                    </div>
+
+                    <div class="pa-4 rounded-xl bg-surface border mb-3">
+                        <MudText Typo="Typo.caption" Class="font-weight-bold text-secondary mb-1 d-block">BUYER INQUIRY:</MudText>
+                        <MudText Typo="Typo.body2">@lead.Message</MudText>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(lead.DealerResponse))
+                    {
+                        <div class="pa-4 rounded-xl bg-surface border mb-4" style="border-left: 4px solid var(--mud-palette-success) !important;">
+                            <MudText Typo="Typo.caption" Color="Color.Success" Class="font-weight-bold mb-1 d-block">SENT REPLY:</MudText>
+                            <MudText Typo="Typo.body2">@lead.DealerResponse</MudText>
+                        </div>
+                    }
+
+                    <!-- Reply Action Box -->
+                    <div class="d-flex gap-2 align-center mt-3 pt-3 border-t flex-wrap">
+                        <MudTextField T="string"
+                                      Placeholder="Type quick response to customer..."
+                                      @bind-Value="_replyTexts[lead.Id]"
+                                      Margin="Margin.Dense"
+                                      Variant="Variant.Outlined"
+                                      Class="flex-grow-1 apple-pill" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Class="apple-btn px-4"
+                                   StartIcon="@Icons.Material.Filled.Send"
+                                   OnClick="@(() => SendReplyAsync(lead.Id))">
+                            Reply & Update
+                        </MudButton>
+                    </div>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private List<LeadInquiryDto> _leads = new();
+    private Dictionary<int, string> _replyTexts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLeadsAsync();
+    }
+
+    private async Task LoadLeadsAsync()
+    {
+        _loading = true;
+        var res = await BookingService.GetDealerInquiriesAsync();
+        if (res.Success && res.Data != null)
+        {
+            _leads = res.Data;
+            foreach (var l in _leads)
+            {
+                if (!_replyTexts.ContainsKey(l.Id))
+                {
+                    _replyTexts[l.Id] = string.Empty;
+                }
+            }
+        }
+        _loading = false;
+    }
+
+    private async Task SendReplyAsync(int leadId)
+    {
+        if (!_replyTexts.TryGetValue(leadId, out var reply) || string.IsNullOrWhiteSpace(reply))
+        {
+            Snackbar.Add("Please enter a reply message.", Severity.Warning);
+            return;
+        }
+
+        var dto = new UpdateInquiryStatusDto
+        {
+            InquiryId = leadId,
+            Status = InquiryStatus.Contacted,
+            DealerResponse = reply.Trim()
+        };
+
+        var res = await BookingService.UpdateInquiryStatusAsync(dto);
+        if (res.Success)
+        {
+            Snackbar.Add("Response sent to customer!", Severity.Success);
+            _replyTexts[leadId] = string.Empty;
+            await LoadLeadsAsync();
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to send response", Severity.Error);
+        }
+    }
+}

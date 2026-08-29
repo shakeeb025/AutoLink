@@ -1,0 +1,191 @@
+@page "/vehicles/compare"
+@using AutoLink.Shared.DTOs
+@using AutoLink.Client.Services
+@inject ComparisonService ComparisonService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>AutoLink | Compare Vehicles</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Vehicle Comparison Matrix</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Side-by-side technical specification, pricing, and powertrain analysis
+        </MudText>
+    </div>
+
+    @if (ComparisonService.Count > 0)
+    {
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Error" Class="apple-btn" StartIcon="@Icons.Material.Filled.ClearAll" OnClick="ClearComparison">
+                Clear All (@ComparisonService.Count)
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => Navigation.NavigateTo("/discovery"))">
+                Add Vehicle
+            </MudButton>
+        </div>
+    }
+</div>
+
+@if (ComparisonService.Count == 0)
+{
+    <MudPaper Elevation="0" Class="apple-card pa-16 text-center">
+        <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+        <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">No Vehicles in Comparison Tray</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6" Style="max-width: 520px; margin: 0 auto; line-height: 1.6;">
+            Browse the marketplace and click the compare icon on up to 4 vehicles to view a comprehensive side-by-side spec comparison.
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="apple-btn px-6" Href="/discovery">
+            Browse Inventory
+        </MudButton>
+    </MudPaper>
+}
+else
+{
+    <MudPaper Elevation="0" Class="apple-card overflow-hidden">
+        <div style="overflow-x: auto;">
+            <MudSimpleTable Striped="false" Hover="true" Class="comparison-table">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.08);">
+                        <th style="width: 200px; font-weight: 700; color: #86868B; letter-spacing: 0.05em; font-size: 0.75rem;" class="pa-4 text-uppercase">SPECIFICATION</th>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <th style="min-width: 260px; vertical-align: top;" class="pa-4">
+                                <div class="position-relative">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                   Color="Color.Error"
+                                                   Size="Size.Small"
+                                                   Class="position-absolute top-0 right-0 bg-dark-blur"
+                                                   OnClick="@(() => RemoveVehicle(v.Id))" />
+
+                                    <div class="rounded-xl overflow-hidden mb-3" style="height: 150px;">
+                                        <img src="@v.PrimaryImageUrl" alt="@v.Make" style="width: 100%; height: 100%; object-fit: cover;" />
+                                    </div>
+                                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold text-truncate">
+                                        @v.Year @v.Make @v.Model
+                                    </MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="font-weight-bold my-1">
+                                        $@v.Price.ToString("N0")
+                                    </MudText>
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               FullWidth="true"
+                                               Class="apple-btn mt-2"
+                                               OnClick="@(() => Navigation.NavigateTo($"/vehicles/{v.Id}"))">
+                                        View Details
+                                    </MudButton>
+                                </div>
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Dealership</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@v.DealerName (@v.DealerCity)</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Price</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td class="font-weight-bold text-primary">$@v.Price.ToString("N0")</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Model Year</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@v.Year</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Mileage</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@v.Mileage.ToString("N0") mi</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Body Style</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td><MudChip T="string" Size="Size.Small" Class="apple-pill font-weight-medium" Color="Color.Default">@v.BodyType</MudChip></td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Fuel & Powertrain</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td><MudChip T="string" Size="Size.Small" Class="apple-pill font-weight-medium" Color="Color.Secondary">@v.FuelType</MudChip></td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Transmission</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@v.Transmission</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Horsepower</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@(v.Horsepower > 0 ? $"{v.Horsepower} HP" : "Standard")</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Engine / Drive</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@(!string.IsNullOrEmpty(v.EngineCapacity) ? v.EngineCapacity : "Standard")</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Seating Capacity</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@v.SeatingCapacity Seats</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Color</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td>@v.Color</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold" style="color: #86868B;">Status</td>
+                        @foreach (var v in ComparisonService.Items)
+                        {
+                            <td><MudChip T="string" Size="Size.Small" Class="apple-pill font-weight-medium" Color="@(v.Status == AutoLink.Shared.Enums.VehicleStatus.Available ? Color.Success : Color.Warning)">@v.Status</MudChip></td>
+                        }
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+        </div>
+    </MudPaper>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        ComparisonService.OnComparisonChanged += StateHasChanged;
+    }
+
+    private void RemoveVehicle(int id)
+    {
+        ComparisonService.Remove(id);
+    }
+
+    private void ClearComparison()
+    {
+        ComparisonService.Clear();
+        Snackbar.Add("Comparison tray cleared", Severity.Info);
+    }
+}

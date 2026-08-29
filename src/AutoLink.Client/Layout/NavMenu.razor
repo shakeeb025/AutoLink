@@ -1,0 +1,61 @@
+@using AutoLink.Shared.Enums
+
+<MudNavMenu Class="pa-3" Rounded="true" Margin="Margin.Dense">
+    <!-- Public Section -->
+    <div class="px-3 pt-2 pb-1">
+        <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B; letter-spacing: 0.08em; text-transform: uppercase;">Marketplace</MudText>
+    </div>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Class="rounded-lg mb-1 font-weight-medium">Showcase</MudNavLink>
+    <MudNavLink Href="/discovery" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DirectionsCar" Class="rounded-lg mb-1 font-weight-medium">Inventory Search</MudNavLink>
+    <MudNavLink Href="/smart-match" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AutoAwesome" Class="rounded-lg mb-1 font-weight-medium text-primary">AI Smart Match</MudNavLink>
+    <MudNavLink Href="/vehicles/compare" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CompareArrows" Class="rounded-lg mb-1 font-weight-medium">Comparison Tray</MudNavLink>
+
+    <!-- Customer Section -->
+    <AuthorizeView Roles="Customer">
+        <MudDivider Class="my-3 mx-2" />
+        <div class="px-3 pt-1 pb-1">
+            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B; letter-spacing: 0.08em; text-transform: uppercase;">Customer Garage</MudText>
+        </div>
+        <MudNavLink Href="/customer/portal" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Garage" Class="rounded-lg mb-1 font-weight-medium">My Garage & Bookings</MudNavLink>
+        <MudNavLink Href="/customer/portal?tab=preferences" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Tune" Class="rounded-lg mb-1 font-weight-medium">Match Preferences</MudNavLink>
+    </AuthorizeView>
+
+    <!-- Seller / Dealer Section -->
+    <AuthorizeView Roles="Seller">
+        <MudDivider Class="my-3 mx-2" />
+        <div class="px-3 pt-1 pb-1">
+            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B; letter-spacing: 0.08em; text-transform: uppercase;">Dealer SaaS</MudText>
+        </div>
+        <MudNavLink Href="/seller/dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Speed" Class="rounded-lg mb-1 font-weight-medium">Dashboard KPI</MudNavLink>
+        <MudNavLink Href="/seller/inventory" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DirectionsCar" Class="rounded-lg mb-1 font-weight-medium">Inventory Manager</MudNavLink>
+        <MudNavLink Href="/seller/bookings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.EventAvailable" Class="rounded-lg mb-1 font-weight-medium">Test Drive Queue</MudNavLink>
+        <MudNavLink Href="/seller/leads" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.MarkEmailUnread" Class="rounded-lg mb-1 font-weight-medium">Customer Leads CRM</MudNavLink>
+        <MudNavLink Href="/seller/subscription" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CardMembership" Class="rounded-lg mb-1 font-weight-medium">SaaS Membership</MudNavLink>
+    </AuthorizeView>
+
+    <!-- Admin Section -->
+    <AuthorizeView Roles="Admin">
+        <MudDivider Class="my-3 mx-2" />
+        <div class="px-3 pt-1 pb-1">
+            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B; letter-spacing: 0.08em; text-transform: uppercase;">Administration</MudText>
+        </div>
+        <MudNavLink Href="/admin/dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Analytics" Class="rounded-lg mb-1 font-weight-medium">Platform Overview</MudNavLink>
+        <MudNavLink Href="/admin/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Palette" Class="rounded-lg mb-1 font-weight-medium text-primary">Branding & Banner Studio</MudNavLink>
+        <MudNavLink Href="/admin/approvals" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.VerifiedUser" Class="rounded-lg mb-1 font-weight-medium">Seller Approvals</MudNavLink>
+        <MudNavLink Href="/admin/moderation" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Security" Class="rounded-lg mb-1 font-weight-medium">Listing Moderation</MudNavLink>
+        <MudNavLink Href="/admin/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PeopleAlt" Class="rounded-lg mb-1 font-weight-medium">User Directory</MudNavLink>
+    </AuthorizeView>
+
+    <!-- Guest / Not Authorized Section -->
+    <AuthorizeView>
+        <NotAuthorized>
+            <MudDivider Class="my-3 mx-2" />
+            <div class="px-3 pt-1 pb-1">
+                <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B; letter-spacing: 0.08em; text-transform: uppercase;">Account</MudText>
+            </div>
+            <MudNavLink Href="/login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login" Class="rounded-lg mb-1 font-weight-medium text-primary">Sign In</MudNavLink>
+            <MudNavLink Href="/register-customer" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PersonAdd" Class="rounded-lg mb-1 font-weight-medium">Register Buyer</MudNavLink>
+            <MudNavLink Href="/register-seller" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Store" Class="rounded-lg mb-1 font-weight-medium">Dealership Sign Up</MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudNavMenu>

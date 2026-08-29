@@ -1,0 +1,239 @@
+@page "/admin/settings"
+@attribute [Authorize(Roles = "Admin")]
+@using AutoLink.Client.Services
+@inject SiteConfigService SiteConfigService
+@inject ISnackbar Snackbar
+
+<PageTitle>@SiteConfigService.Config.SiteTitle | Platform Branding & Theme Studio</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-center gap-2 mb-1">
+            <div class="pa-2 rounded-circle bg-primary-subtle d-inline-flex align-center justify-center">
+                <MudIcon Icon="@Icons.Material.Filled.Palette" Color="Color.Primary" Size="Size.Small" />
+            </div>
+            <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Branding & Theme Studio</MudText>
+        </div>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Customize platform title, hero banners, theme presets, and marketing copy in real time across the marketplace.
+        </MudText>
+    </div>
+
+    <div class="d-flex gap-2">
+        <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.RestartAlt" OnClick="ResetDefaultsAsync">
+            Reset Defaults
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn px-6" StartIcon="@Icons.Material.Filled.Save" OnClick="SaveSettingsAsync">
+            Save Changes
+        </MudButton>
+    </div>
+</div>
+
+<MudGrid Spacing="4">
+    <!-- Left Column: Settings Form -->
+    <MudItem xs="12" md="7">
+        <!-- 1. Brand Identity -->
+        <MudPaper Elevation="0" Class="apple-card pa-6 mb-6">
+            <div class="d-flex align-center gap-2 mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.BrandingWatermark" Color="Color.Primary" />
+                <MudText Typo="Typo.h6" Class="font-weight-bold">1. Brand Identity & Naming</MudText>
+            </div>
+
+            <MudTextField T="string"
+                          Label="Website / Brand Title"
+                          @bind-Value="_config.SiteTitle"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          HelperText="Appears on navigation bar, browser tabs, and emails"
+                          Class="mb-4" />
+
+            <MudTextField T="string"
+                          Label="Sub-brand Tagline / Badge"
+                          @bind-Value="_config.SiteTagline"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          HelperText="Small sub-heading displayed below the logo"
+                          Class="mb-4" />
+
+            <MudTextField T="string"
+                          Label="Copyright Footer Text"
+                          @bind-Value="_config.CopyrightText"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-2" />
+        </MudPaper>
+
+        <!-- 2. Hero Banner & Marketing Copy -->
+        <MudPaper Elevation="0" Class="apple-card pa-6 mb-6">
+            <div class="d-flex align-center gap-2 mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Wallpaper" Color="Color.Primary" />
+                <MudText Typo="Typo.h6" Class="font-weight-bold">2. Hero Banner & Marketing Copy</MudText>
+            </div>
+
+            <MudTextField T="string"
+                          Label="Hero Headline Text"
+                          @bind-Value="_config.HeroHeadline"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-4" />
+
+            <MudTextField T="string"
+                          Label="Hero Subheadline & Value Proposition"
+                          @bind-Value="_config.HeroSubheadline"
+                          Lines="2"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-4" />
+
+            <MudTextField T="string"
+                          Label="Hero Banner Image URL (Direct CDN / Unsplash URL)"
+                          @bind-Value="_config.HeroBannerImageUrl"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          HelperText="Paste a high-resolution automotive image link"
+                          Class="mb-4" />
+
+            <!-- Banner Presets -->
+            <MudText Typo="Typo.subtitle2" Class="font-weight-bold mb-3">Or choose a Curated Enterprise Preset:</MudText>
+            <div class="d-flex flex-column gap-2">
+                @foreach (var preset in SiteConfigService.Presets)
+                {
+                    <div class="d-flex align-center justify-space-between p-3 rounded-lg border cursor-pointer hover-elevate @(_config.HeroBannerImageUrl == preset.ImageUrl ? "border-primary bg-primary-subtle" : "")"
+                         style="@(_config.HeroBannerImageUrl == preset.ImageUrl ? "border: 2px solid #E50914;" : "")"
+                         @onclick="@(() => SelectPreset(preset))">
+                        <div class="d-flex align-center gap-3">
+                            <img src="@preset.ImageUrl" alt="@preset.Title" style="width: 64px; height: 42px; object-fit: cover; border-radius: 8px;" />
+                            <div>
+                                <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@preset.Title</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@preset.Subtitle</MudText>
+                            </div>
+                        </div>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined" Class="apple-pill font-weight-bold">
+                            @preset.Category
+                        </MudChip>
+                    </div>
+                }
+            </div>
+        </MudPaper>
+
+        <!-- 3. Contact & Concierge Information -->
+        <MudPaper Elevation="0" Class="apple-card pa-6">
+            <div class="d-flex align-center gap-2 mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.ContactPhone" Color="Color.Primary" />
+                <MudText Typo="Typo.h6" Class="font-weight-bold">3. Contact & Concierge Details</MudText>
+            </div>
+
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Concierge Email" @bind-Value="_config.ContactEmail" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Support Hotline" @bind-Value="_config.ContactPhone" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Right Column: Live Enterprise Preview -->
+    <MudItem xs="12" md="5">
+        <div class="sticky-top" style="top: 88px;">
+            <MudPaper Elevation="0" Class="apple-card pa-6">
+                <div class="d-flex align-center justify-space-between mb-4">
+                    <div class="d-flex align-center gap-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6" Class="font-weight-bold">Live Banner Preview</MudText>
+                    </div>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled" Class="apple-pill font-weight-bold">
+                        Active Mode
+                    </MudChip>
+                </div>
+
+                <!-- Mock Hero Card -->
+                <div class="rounded-xl overflow-hidden position-relative mb-4" style="height: 240px; background-color: #000000;">
+                    <img src="@_config.HeroBannerImageUrl" alt="Preview Banner" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.65;" />
+                    <div class="position-absolute inset-0 d-flex flex-column justify-end pa-4" style="background: linear-gradient(180deg, transparent 20%, rgba(0,0,0,0.9) 100%);">
+                        <div class="d-inline-flex align-center gap-1.5 px-2.5 py-1 rounded-pill bg-dark-glass mb-2" style="width: fit-content;">
+                            <span class="rounded-circle" style="width: 8px; height: 8px; background-color: #E50914;"></span>
+                            <span style="color: #F8FAFC; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">@_config.SiteTagline</span>
+                        </div>
+                        <MudText Typo="Typo.h6" Class="font-weight-bold text-white mb-1" Style="line-height: 1.2;">
+                            @_config.HeroHeadline
+                        </MudText>
+                        <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.8);">
+                            @_config.HeroSubheadline
+                        </MudText>
+                    </div>
+                </div>
+
+                <!-- Mock Appbar Branding Preview -->
+                <MudText Typo="Typo.subtitle2" Class="font-weight-bold mb-2">Navigation Header Preview</MudText>
+                <div class="p-3 rounded-lg border d-flex align-center justify-space-between mb-4 bg-surface">
+                    <div class="d-flex align-center">
+                        <div class="pa-1.5 rounded-circle me-2 d-flex align-center justify-center bg-primary-subtle">
+                            <MudIcon Icon="@Icons.Material.Filled.DirectionsCarFilled" Color="Color.Primary" Size="Size.Small" />
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="line-height: 1;">
+                                @_config.SiteTitle
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="font-size: 0.6rem; color: #71717A;">
+                                @_config.SiteTagline
+                            </MudText>
+                        </div>
+                    </div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Class="apple-btn px-3">
+                        Action
+                    </MudButton>
+                </div>
+
+                <div class="d-flex justify-end gap-2 mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn px-6" FullWidth="true" OnClick="SaveSettingsAsync">
+                        Apply & Save Branding
+                    </MudButton>
+                </div>
+            </MudPaper>
+        </div>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private SiteConfig _config = new();
+
+    protected override void OnInitialized()
+    {
+        _config = new SiteConfig
+        {
+            SiteTitle = SiteConfigService.Config.SiteTitle,
+            SiteTagline = SiteConfigService.Config.SiteTagline,
+            HeroHeadline = SiteConfigService.Config.HeroHeadline,
+            HeroSubheadline = SiteConfigService.Config.HeroSubheadline,
+            HeroBannerImageUrl = SiteConfigService.Config.HeroBannerImageUrl,
+            PrimaryColor = SiteConfigService.Config.PrimaryColor,
+            ContactEmail = SiteConfigService.Config.ContactEmail,
+            ContactPhone = SiteConfigService.Config.ContactPhone,
+            CopyrightText = SiteConfigService.Config.CopyrightText
+        };
+    }
+
+    private void SelectPreset(BannerPreset preset)
+    {
+        _config.HeroBannerImageUrl = preset.ImageUrl;
+        _config.HeroHeadline = preset.Title;
+        _config.HeroSubheadline = preset.Subtitle;
+        StateHasChanged();
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        await SiteConfigService.UpdateConfigAsync(_config);
+        Snackbar.Add("Platform branding and banner updated successfully!", Severity.Success);
+    }
+
+    private async Task ResetDefaultsAsync()
+    {
+        await SiteConfigService.ResetToDefaultsAsync();
+        _config = new SiteConfig();
+        Snackbar.Add("Branding reset to platform defaults.", Severity.Info);
+        StateHasChanged();
+    }
+}

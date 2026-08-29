@@ -1,0 +1,151 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.MudDebugAnalyzer = 
+build_property.MudAllowedAttributePattern = 
+build_property.MudIllegalParameters = 
+build_property.TargetFramework = net9.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v9.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EntryPointFilePath = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = AutoLink.Client
+build_property.RootNamespace = AutoLink.Client
+build_property.ProjectDir = /Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = false
+build_property.RazorLangVersion = 9.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 9.0
+build_property.EnableCodeStyleSeverity = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Components/ImageGallery.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9JbWFnZUdhbGxlcnkucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Components/InquiryDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9JbnF1aXJ5RGlhbG9nLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Components/ListingFormDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MaXN0aW5nRm9ybURpYWxvZy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Components/MatchScoreBadge.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9NYXRjaFNjb3JlQmFkZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Components/StatCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TdGF0Q2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Components/TestDriveDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9UZXN0RHJpdmVEaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Components/VehicleCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9WZWhpY2xlQ2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L01haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L05hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Admin/AdminDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWRtaW4vQWRtaW5EYXNoYm9hcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Admin/ListingModeration.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWRtaW4vTGlzdGluZ01vZGVyYXRpb24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Admin/PlatformSettings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWRtaW4vUGxhdGZvcm1TZXR0aW5ncy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Admin/SellerApprovals.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWRtaW4vU2VsbGVyQXBwcm92YWxzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Admin/UserManagement.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWRtaW4vVXNlck1hbmFnZW1lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Auth/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9Mb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Auth/RegisterCustomer.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9SZWdpc3RlckN1c3RvbWVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Auth/RegisterSeller.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9SZWdpc3RlclNlbGxlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Customer/CustomerDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ3VzdG9tZXIvQ3VzdG9tZXJEYXNoYm9hcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Seller/BookingManagement.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2VsbGVyL0Jvb2tpbmdNYW5hZ2VtZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Seller/InventoryManagement.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2VsbGVyL0ludmVudG9yeU1hbmFnZW1lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Seller/LeadsInbox.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2VsbGVyL0xlYWRzSW5ib3gucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Seller/SellerDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2VsbGVyL1NlbGxlckRhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Seller/SubscriptionView.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2VsbGVyL1N1YnNjcmlwdGlvblZpZXcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Vehicles/Discovery.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvRGlzY292ZXJ5LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Vehicles/SmartMatch.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvU21hcnRNYXRjaC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Vehicles/VehicleCompare.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvVmVoaWNsZUNvbXBhcmUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/Pages/Vehicles/VehicleDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvVmVoaWNsZURldGFpbHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Client/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 

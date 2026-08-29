@@ -1,0 +1,15 @@
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/bin/Debug/net9.0/AutoLink.Core.deps.json
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/bin/Debug/net9.0/AutoLink.Core.dll
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/bin/Debug/net9.0/AutoLink.Core.pdb
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/bin/Debug/net9.0/AutoLink.Shared.dll
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/bin/Debug/net9.0/AutoLink.Shared.pdb
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.Core.csproj.AssemblyReference.cache
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.Core.AssemblyInfoInputs.cache
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.Core.AssemblyInfo.cs
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.Core.csproj.CoreCompileInputs.cache
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.276D9B13.Up2Date
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.Core.dll
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/refint/AutoLink.Core.dll
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/AutoLink.Core.pdb
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Core/obj/Debug/net9.0/ref/AutoLink.Core.dll

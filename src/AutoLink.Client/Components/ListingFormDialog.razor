@@ -1,0 +1,341 @@
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject VehicleService VehicleService
+@inject ISnackbar Snackbar
+
+<MudDialog Class="apple-card pa-2" Style="border-radius: 20px; max-width: 800px; width: 100%;">
+    <TitleContent>
+        <div class="d-flex align-center gap-2 pt-2 px-2">
+            <div class="pa-2 rounded-circle bg-primary-subtle d-flex align-center justify-center">
+                <MudIcon Icon="@(IsEditMode ? Icons.Material.Filled.EditNote : Icons.Material.Filled.AddCircle)" Color="Color.Primary" Size="Size.Small" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.01em;">@(IsEditMode ? "Edit Vehicle Listing" : "Create New Vehicle Listing")</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Enter complete vehicle details, images, and key equipment</MudText>
+            </div>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div class="px-2">
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4" Color="Color.Primary">
+                <!-- Tab 1: General Info & Specifications -->
+                <MudTabPanel Text="1. Specifications" Icon="@Icons.Material.Filled.DirectionsCar">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="string" Label="Make (e.g. BMW, Tesla, Toyota)" @bind-Value="_model.Make" Required="true" RequiredError="Make is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="string" Label="Model (e.g. M3, Model S, RAV4)" @bind-Value="_model.Model" Required="true" RequiredError="Model is required" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="int" Label="Year" @bind-Value="_model.Year" Min="1990" Max="2027" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal" Label="Price ($)" @bind-Value="_model.Price" Min="0" Format="N0" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="int" Label="Mileage (miles)" @bind-Value="_model.Mileage" Min="0" Format="N0" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudSelect T="BodyType" Label="Body Type" @bind-Value="_model.BodyType" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                @foreach (BodyType bt in Enum.GetValues(typeof(BodyType)))
+                                {
+                                    <MudSelectItem Value="bt">@bt</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudSelect T="FuelType" Label="Fuel Type" @bind-Value="_model.FuelType" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                @foreach (FuelType ft in Enum.GetValues(typeof(FuelType)))
+                                {
+                                    <MudSelectItem Value="ft">@ft</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudSelect T="TransmissionType" Label="Transmission" @bind-Value="_model.Transmission" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                @foreach (TransmissionType tt in Enum.GetValues(typeof(TransmissionType)))
+                                {
+                                    <MudSelectItem Value="tt">@tt</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="string" Label="Exterior Color" @bind-Value="_model.Color" Required="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="string" Label="Engine / Powertrain" @bind-Value="_model.EngineCapacity" Placeholder="e.g. 3.0L TwinPower Turbo / Dual Motor" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="int" Label="Horsepower (HP)" @bind-Value="_model.Horsepower" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="int" Label="Seating Capacity" @bind-Value="_model.SeatingCapacity" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudTextField T="string" Label="VIN Number" @bind-Value="_model.Vin" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+
+                <!-- Tab 2: Photos & Gallery -->
+                <MudTabPanel Text="2. Photos" Icon="@Icons.Material.Filled.PhotoLibrary">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                        Enter high-resolution vehicle image URLs. The first image is the cover picture.
+                    </MudText>
+
+                    <div class="d-flex gap-2 mb-4">
+                        <MudTextField T="string"
+                                      Label="Add Image URL"
+                                      @bind-Value="_newImageUrl"
+                                      Placeholder="https://images.unsplash.com/..."
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Class="flex-grow-1" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn" StartIcon="@Icons.Material.Filled.Add" OnClick="AddImageUrl">
+                            Add
+                        </MudButton>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        @for (int i = 0; i < _imageUrls.Count; i++)
+                        {
+                            int index = i;
+                            var url = _imageUrls[i];
+                            <div class="position-relative rounded-lg border overflow-hidden" style="width: 140px; height: 95px;">
+                                <img src="@url" alt="img" style="width: 100%; height: 100%; object-fit: cover;" />
+                                @if (index == 0)
+                                {
+                                    <div class="position-absolute top-1 left-1">
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="apple-pill py-0 px-2 font-weight-bold" Style="font-size: 0.65rem;">Cover</MudChip>
+                                    </div>
+                                }
+                                <div class="position-absolute top-1 right-1">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                   Size="Size.Small"
+                                                   Color="Color.Error"
+                                                   Variant="Variant.Filled"
+                                                   Class="bg-dark-blur pa-0.5"
+                                                   OnClick="@(() => RemoveImageUrl(index))" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </MudTabPanel>
+
+                <!-- Tab 3: Description & Features -->
+                <MudTabPanel Text="3. Features & Notes" Icon="@Icons.Material.Filled.Checklist">
+                    <MudTextField T="string"
+                                  Label="Listing Description"
+                                  @bind-Value="_model.Description"
+                                  Lines="4"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder="Detailed overview of condition, service history, packages, and warranty..."
+                                  Class="mb-4" />
+
+                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold mb-2">Key Equipment & Features</MudText>
+                    <div class="d-flex gap-2 mb-3">
+                        <MudTextField T="string"
+                                      Label="Add Feature"
+                                      @bind-Value="_newFeature"
+                                      Placeholder="e.g., Panoramic Sunroof, Adaptive Cruise, Leather Seats"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Class="flex-grow-1" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.Add" OnClick="AddFeature">
+                            Add
+                        </MudButton>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        @for (int i = 0; i < _features.Count; i++)
+                        {
+                            int index = i;
+                            <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Class="apple-pill" OnClose="@(() => RemoveFeature(index))">
+                                @_features[index]
+                            </MudChip>
+                        }
+                    </div>
+
+                    @if (IsEditMode)
+                    {
+                        <MudDivider Class="my-4" />
+                        <MudSelect T="VehicleStatus" Label="Listing Status" @bind-Value="_status" Variant="Variant.Outlined" Margin="Margin.Dense">
+                            <MudSelectItem Value="VehicleStatus.Available">Available</MudSelectItem>
+                            <MudSelectItem Value="VehicleStatus.Reserved">Reserved</MudSelectItem>
+                            <MudSelectItem Value="VehicleStatus.Sold">Sold</MudSelectItem>
+                        </MudSelect>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Class="apple-btn">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Class="apple-btn px-6"
+                   OnClick="SaveListingAsync"
+                   Disabled="@(!_isValid || _submitting)">
+            @if (_submitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <span class="ms-2">Saving...</span>
+            }
+            else
+            {
+                <span>@(IsEditMode ? "Save Changes" : "Publish Listing")</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public VehicleDetailDto? ExistingVehicle { get; set; }
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+    private bool IsEditMode => ExistingVehicle != null;
+
+    private CreateVehicleDto _model = new();
+    private VehicleStatus _status = VehicleStatus.Available;
+    private List<string> _imageUrls = new();
+    private List<string> _features = new();
+    private string _newImageUrl = string.Empty;
+    private string _newFeature = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (ExistingVehicle != null)
+        {
+            _model = new CreateVehicleDto
+            {
+                Make = ExistingVehicle.Make,
+                Model = ExistingVehicle.Model,
+                Year = ExistingVehicle.Year,
+                Price = ExistingVehicle.Price,
+                Mileage = ExistingVehicle.Mileage,
+                BodyType = ExistingVehicle.BodyType,
+                FuelType = ExistingVehicle.FuelType,
+                Transmission = ExistingVehicle.Transmission,
+                Color = ExistingVehicle.Color,
+                EngineCapacity = ExistingVehicle.EngineCapacity,
+                Horsepower = ExistingVehicle.Horsepower,
+                SeatingCapacity = ExistingVehicle.SeatingCapacity,
+                Vin = ExistingVehicle.Vin,
+                Description = ExistingVehicle.Description,
+                IsFeatured = ExistingVehicle.IsFeatured
+            };
+            _status = ExistingVehicle.Status;
+            _imageUrls = ExistingVehicle.Images.Select(i => i.ImageUrl).ToList();
+            _features = ExistingVehicle.Features.ToList();
+        }
+        else
+        {
+            _imageUrls.Add("https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000");
+            _features.AddRange(new[] { "Backup Camera", "Bluetooth Connectivity", "Keyless Entry" });
+        }
+    }
+
+    private void AddImageUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(_newImageUrl))
+        {
+            _imageUrls.Add(_newImageUrl.Trim());
+            _newImageUrl = string.Empty;
+        }
+    }
+
+    private void RemoveImageUrl(int index)
+    {
+        if (index >= 0 && index < _imageUrls.Count)
+        {
+            _imageUrls.RemoveAt(index);
+        }
+    }
+
+    private void AddFeature()
+    {
+        if (!string.IsNullOrWhiteSpace(_newFeature))
+        {
+            _features.Add(_newFeature.Trim());
+            _newFeature = string.Empty;
+        }
+    }
+
+    private void RemoveFeature(int index)
+    {
+        if (index >= 0 && index < _features.Count)
+        {
+            _features.RemoveAt(index);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task SaveListingAsync()
+    {
+        _submitting = true;
+        _model.ImageUrls = _imageUrls;
+        _model.Features = _features;
+
+        if (IsEditMode)
+        {
+            var updateDto = new UpdateVehicleDto
+            {
+                Id = ExistingVehicle!.Id,
+                Make = _model.Make,
+                Model = _model.Model,
+                Year = _model.Year,
+                Price = _model.Price,
+                Mileage = _model.Mileage,
+                BodyType = _model.BodyType,
+                FuelType = _model.FuelType,
+                Transmission = _model.Transmission,
+                Color = _model.Color,
+                EngineCapacity = _model.EngineCapacity,
+                Horsepower = _model.Horsepower,
+                SeatingCapacity = _model.SeatingCapacity,
+                Vin = _model.Vin,
+                Description = _model.Description,
+                Features = _features,
+                ImageUrls = _imageUrls,
+                Status = _status,
+                IsFeatured = _model.IsFeatured
+            };
+
+            var res = await VehicleService.UpdateVehicleAsync(ExistingVehicle.Id, updateDto);
+            _submitting = false;
+            if (res.Success)
+            {
+                Snackbar.Add("Listing updated successfully!", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add(res.Message ?? "Failed to update listing", Severity.Error);
+            }
+        }
+        else
+        {
+            var res = await VehicleService.CreateVehicleAsync(_model);
+            _submitting = false;
+            if (res.Success)
+            {
+                Snackbar.Add("Vehicle published to marketplace!", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add(res.Message ?? "Failed to create listing", Severity.Error);
+            }
+        }
+    }
+}
+

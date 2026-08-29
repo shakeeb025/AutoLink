@@ -1,0 +1,127 @@
+@page "/admin/approvals"
+@attribute [Authorize(Roles = "Admin")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject AdminService AdminService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>AutoLink | Seller Verification Queue</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Seller Verification</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Review business licenses, location credentials, and moderate dealer onboarding
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadPendingAsync">
+        Refresh Queue
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center my-16">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (_pendingDealers.Count == 0)
+{
+    <MudPaper Elevation="0" Class="apple-card pa-12 text-center border rounded-xl my-4">
+        <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline" Color="Color.Success" Size="Size.Large" Class="mb-3" />
+        <MudText Typo="Typo.h6" Class="font-weight-bold mb-2">Queue is Clear</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">All submitted dealerships have been verified and processed.</MudText>
+    </MudPaper>
+}
+else
+{
+    <MudGrid Spacing="4">
+        @foreach (var d in _pendingDealers)
+        {
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="0" Class="apple-card pa-6 border h-100 d-flex flex-column justify-space-between hover-elevate">
+                    <div>
+                        <div class="d-flex justify-space-between align-start mb-3 flex-wrap gap-2">
+                            <div>
+                                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.01em;">@d.BusinessName</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Reg No: <strong>@d.RegistrationNumber</strong></MudText>
+                            </div>
+                            <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" Size="Size.Small" Class="apple-pill font-weight-bold">
+                                @d.ApprovalStatus
+                            </MudChip>
+                        </div>
+
+                        <MudList T="string" Dense="true" Class="pa-0 mb-4">
+                            <MudListItem Icon="@Icons.Material.Filled.Person">Contact: @d.ContactPersonName (@d.Email)</MudListItem>
+                            <MudListItem Icon="@Icons.Material.Filled.Phone">Phone: @d.PhoneNumber</MudListItem>
+                            <MudListItem Icon="@Icons.Material.Filled.LocationOn">Address: @d.Address, @d.City</MudListItem>
+                            <MudListItem Icon="@Icons.Material.Filled.CardMembership">Requested Tier: @d.SubscriptionTier</MudListItem>
+                        </MudList>
+
+                        @if (!string.IsNullOrEmpty(d.Description))
+                        {
+                            <div class="pa-3 rounded-xl bg-surface border mb-3">
+                                <MudText Typo="Typo.caption" Class="font-weight-bold text-secondary mb-1 d-block">BUSINESS SUMMARY:</MudText>
+                                <MudText Typo="Typo.body2">@d.Description</MudText>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-end gap-2 mt-3 pt-3 border-t">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Error" Class="apple-btn" StartIcon="@Icons.Material.Filled.Close" OnClick="@(() => ProcessApprovalAsync(d.Id, false))">
+                            Reject
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" Class="apple-btn" StartIcon="@Icons.Material.Filled.Check" OnClick="@(() => ProcessApprovalAsync(d.Id, true))">
+                            Approve Dealer
+                        </MudButton>
+                    </div>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private List<DealerProfileDto> _pendingDealers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingAsync();
+    }
+
+    private async Task LoadPendingAsync()
+    {
+        _loading = true;
+        var res = await AdminService.GetPendingSellersAsync();
+        if (res.Success && res.Data != null)
+        {
+            _pendingDealers = res.Data;
+        }
+        _loading = false;
+    }
+
+    private async Task ProcessApprovalAsync(int dealerId, bool approved)
+    {
+        var dto = new DealerApprovalDto
+        {
+            DealerId = dealerId,
+            Approved = approved,
+            Remarks = approved ? "Verified business credentials." : "Business license not confirmed."
+        };
+
+        var res = await AdminService.ApproveSellerAsync(dto);
+        if (res.Success)
+        {
+            Snackbar.Add(res.Message, approved ? Severity.Success : Severity.Warning);
+            await LoadPendingAsync();
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to process request", Severity.Error);
+        }
+    }
+}

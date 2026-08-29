@@ -1,0 +1,301 @@
+@page "/vehicles/{Id:int}"
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@using AutoLink.Client.Components
+@inject VehicleService VehicleService
+@inject ComparisonService ComparisonService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>@(_vehicle != null ? $"{_vehicle.Year} {_vehicle.Make} {_vehicle.Model} | AutoLink" : "Vehicle Details")</PageTitle>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center my-16">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (_vehicle == null)
+{
+    <MudAlert Severity="Severity.Error" Class="apple-card my-6">Vehicle listing not found or has been removed.</MudAlert>
+}
+else
+{
+    <!-- Breadcrumb Header & Top Actions -->
+    <div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-3">
+        <MudBreadcrumbs Items="_breadcrumbs" Class="pa-0" />
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined"
+                       Color="@(_vehicle.IsFavorite ? Color.Error : Color.Default)"
+                       Class="apple-btn"
+                       StartIcon="@(_vehicle.IsFavorite ? Icons.Material.Filled.Favorite : Icons.Material.Outlined.FavoriteBorder)"
+                       OnClick="ToggleFavoriteAsync">
+                @(_vehicle.IsFavorite ? "Saved" : "Save Favorite")
+            </MudButton>
+
+            <MudButton Variant="Variant.Outlined"
+                       Color="@(ComparisonService.IsInComparison(_vehicle.Id) ? Color.Primary : Color.Default)"
+                       Class="apple-btn"
+                       StartIcon="@Icons.Material.Filled.CompareArrows"
+                       OnClick="ToggleComparison">
+                @(ComparisonService.IsInComparison(_vehicle.Id) ? "In Comparison" : "Compare")
+            </MudButton>
+        </div>
+    </div>
+
+    <!-- Title & Price Banner -->
+    <div class="d-flex justify-space-between align-start flex-wrap gap-4 mb-8">
+        <div>
+            <div class="d-flex align-center gap-2 mb-2">
+                <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" Class="apple-pill font-weight-bold">@_vehicle.BodyType</MudChip>
+                <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Outlined" Class="apple-pill font-weight-bold">@_vehicle.FuelType</MudChip>
+                @if (_vehicle.Status != VehicleStatus.Available)
+                {
+                    <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled" Class="apple-pill font-weight-bold">@_vehicle.Status</MudChip>
+                }
+            </div>
+            <MudText Typo="Typo.h3" Class="font-weight-bold" Style="letter-spacing: -0.02em;">@_vehicle.Year @_vehicle.Make @_vehicle.Model</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
+                Offered by <strong>@_vehicle.DealerName</strong> • @_vehicle.DealerCity
+            </MudText>
+        </div>
+
+        <div class="text-md-right">
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="letter-spacing: 0.05em;">Marketplace Price</MudText>
+            <MudText Typo="Typo.h3" Color="Color.Primary" Class="font-weight-bold" Style="letter-spacing: -0.03em;">
+                $@_vehicle.Price.ToString("N0")
+            </MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                @_vehicle.ViewsCount Views • Listed @_vehicle.CreatedAt.ToString("MMM dd, yyyy")
+            </MudText>
+        </div>
+    </div>
+
+    <MudGrid Spacing="4">
+        <!-- Left: Image Gallery & Description -->
+        <MudItem xs="12" lg="8">
+            <AutoLink.Client.Components.ImageGallery Images="_vehicle.Images" />
+
+            <!-- Overview & Description -->
+            <MudPaper Elevation="0" Class="apple-card pa-6 pa-md-8 my-6">
+                <MudText Typo="Typo.h5" Class="font-weight-bold mb-3" Style="letter-spacing: -0.015em;">Vehicle Overview</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Style="white-space: pre-line; line-height: 1.8;">
+                    @_vehicle.Description
+                </MudText>
+
+                <!-- Features Grid -->
+                @if (_vehicle.Features != null && _vehicle.Features.Count > 0)
+                {
+                    <MudDivider Class="my-6" />
+                    <MudText Typo="Typo.h6" Class="font-weight-bold mb-4" Style="letter-spacing: -0.01em;">Installed Equipment & Options</MudText>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var feat in _vehicle.Features)
+                        {
+                            <MudChip T="string" Variant="Variant.Outlined" Color="Color.Default" Class="apple-pill font-weight-medium" Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                                @feat
+                            </MudChip>
+                        }
+                    </div>
+                }
+            </MudPaper>
+
+            <!-- Technical Specifications Grid -->
+            <MudPaper Elevation="0" Class="apple-card pa-6 pa-md-8 mb-6">
+                <MudText Typo="Typo.h5" Class="font-weight-bold mb-5" Style="letter-spacing: -0.015em;">Technical Specifications</MudText>
+                <MudGrid Spacing="3">
+                    <MudItem xs="6" sm="4">
+                        <div class="pa-4 rounded-xl bg-surface border">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">MILEAGE</MudText>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@_vehicle.Mileage.ToString("N0") mi</MudText>
+                        </div>
+                    </MudItem>
+                    <MudItem xs="6" sm="4">
+                        <div class="pa-4 rounded-xl bg-surface border">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">HORSEPOWER</MudText>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@(_vehicle.Horsepower > 0 ? $"{_vehicle.Horsepower} HP" : "Standard")</MudText>
+                        </div>
+                    </MudItem>
+                    <MudItem xs="6" sm="4">
+                        <div class="pa-4 rounded-xl bg-surface border">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">TRANSMISSION</MudText>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@_vehicle.Transmission</MudText>
+                        </div>
+                    </MudItem>
+                    <MudItem xs="6" sm="4">
+                        <div class="pa-4 rounded-xl bg-surface border">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">EXTERIOR COLOR</MudText>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@_vehicle.Color</MudText>
+                        </div>
+                    </MudItem>
+                    <MudItem xs="6" sm="4">
+                        <div class="pa-4 rounded-xl bg-surface border">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">POWERTRAIN</MudText>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@(!string.IsNullOrEmpty(_vehicle.EngineCapacity) ? _vehicle.EngineCapacity : "Standard")</MudText>
+                        </div>
+                    </MudItem>
+                    <MudItem xs="6" sm="4">
+                        <div class="pa-4 rounded-xl bg-surface border">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">SEATING CAPACITY</MudText>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@_vehicle.SeatingCapacity Seats</MudText>
+                        </div>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <div class="pa-4 rounded-xl bg-surface border d-flex justify-space-between align-center flex-wrap gap-2">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">VEHICLE IDENTIFICATION NUMBER (VIN)</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="font-weight-bold font-monospace">@(!string.IsNullOrEmpty(_vehicle.Vin) ? _vehicle.Vin : "Available on inquiry")</MudText>
+                        </div>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Right: Action Portal & Dealer Info -->
+        <MudItem xs="12" lg="4">
+            <!-- Action Box -->
+            <MudPaper Elevation="0" Class="apple-card pa-6 pa-md-8 mb-6 border border-primary sticky-top" Style="top: 84px;">
+                <MudText Typo="Typo.h5" Class="font-weight-bold mb-1" Style="letter-spacing: -0.015em;">Schedule & Inquire</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+                    Connect directly with the certified dealership. No third-party middlemen.
+                </MudText>
+
+                <div class="d-flex flex-column gap-3">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               Class="apple-btn py-3"
+                               StartIcon="@Icons.Material.Filled.EventAvailable"
+                               OnClick="OpenTestDriveDialogAsync"
+                               Disabled="@(_vehicle.Status != VehicleStatus.Available)">
+                        Schedule Test Drive
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               Class="apple-btn py-3"
+                               StartIcon="@Icons.Material.Filled.Email"
+                               OnClick="OpenInquiryDialogAsync">
+                        Send Dealer Inquiry
+                    </MudButton>
+                </div>
+
+                <MudDivider Class="my-5" />
+
+                <div class="d-flex align-center gap-2 text-secondary" style="font-size: 0.85rem;">
+                    <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Success" Size="Size.Small" />
+                    <span>AutoLink Verified Dealer Protection</span>
+                </div>
+
+                <!-- Dealership Information Sub-Card -->
+                @if (_vehicle.Dealer != null)
+                {
+                    <MudDivider Class="my-5" />
+                    <div class="d-flex align-center gap-3 mb-4">
+                        <MudAvatar Size="Size.Large" Color="Color.Primary" Class="apple-pill font-weight-bold">
+                            @if (!string.IsNullOrEmpty(_vehicle.Dealer.LogoUrl))
+                            {
+                                <MudImage Src="@_vehicle.Dealer.LogoUrl" Alt="@_vehicle.Dealer.BusinessName" />
+                            }
+                            else
+                            {
+                                @_vehicle.Dealer.BusinessName.FirstOrDefault()
+                            }
+                        </MudAvatar>
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@_vehicle.Dealer.BusinessName</MudText>
+                            <div class="d-flex align-center gap-1">
+                                <MudRating SelectedValue="@((int)Math.Round(_vehicle.Dealer.Rating))" ReadOnly="true" Size="Size.Small" Color="Color.Tertiary" />
+                                <MudText Typo="Typo.caption" Class="font-weight-bold">@_vehicle.Dealer.Rating.ToString("0.0")</MudText>
+                            </div>
+                        </div>
+                    </div>
+
+                    <MudList T="string" Dense="true" Class="pa-0 mb-3">
+                        <MudListItem Icon="@Icons.Material.Filled.Person">Contact: @_vehicle.Dealer.ContactPersonName</MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Phone">@_vehicle.Dealer.PhoneNumber</MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.LocationOn">@_vehicle.Dealer.Address, @_vehicle.Dealer.City</MudListItem>
+                    </MudList>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private VehicleDetailDto? _vehicle;
+    private bool _loading = true;
+    private List<BreadcrumbItem> _breadcrumbs = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        var res = await VehicleService.GetVehicleByIdAsync(Id);
+        if (res.Success && res.Data != null)
+        {
+            _vehicle = res.Data;
+            _breadcrumbs = new List<BreadcrumbItem>
+            {
+                new("Marketplace", href: "/"),
+                new("Discovery", href: "/discovery"),
+                new($"{_vehicle.Make} {_vehicle.Model}", href: null, disabled: true)
+            };
+        }
+        _loading = false;
+    }
+
+    private async Task ToggleFavoriteAsync()
+    {
+        if (_vehicle == null) return;
+        var res = await VehicleService.ToggleFavoriteAsync(_vehicle.Id);
+        if (res.Success)
+        {
+            _vehicle.IsFavorite = res.Data;
+            Snackbar.Add(res.Message, _vehicle.IsFavorite ? Severity.Success : Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Please sign in as a customer to save favorites", Severity.Warning);
+        }
+    }
+
+    private void ToggleComparison()
+    {
+        if (_vehicle == null) return;
+        if (ComparisonService.IsInComparison(_vehicle.Id))
+        {
+            ComparisonService.Remove(_vehicle.Id);
+            Snackbar.Add("Removed from comparison tray", Severity.Info);
+        }
+        else
+        {
+            if (ComparisonService.Add(_vehicle))
+            {
+                Snackbar.Add("Added to comparison tray!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Maximum 4 vehicles can be compared at once.", Severity.Warning);
+            }
+        }
+    }
+
+    private async Task OpenTestDriveDialogAsync()
+    {
+        if (_vehicle == null) return;
+        var parameters = new DialogParameters { ["Vehicle"] = _vehicle };
+        var dialog = await DialogService.ShowAsync<TestDriveDialog>("Schedule Test Drive", parameters);
+        await dialog.Result;
+    }
+
+    private async Task OpenInquiryDialogAsync()
+    {
+        if (_vehicle == null) return;
+        var parameters = new DialogParameters { ["Vehicle"] = _vehicle };
+        var dialog = await DialogService.ShowAsync<InquiryDialog>("Send Inquiry", parameters);
+        await dialog.Result;
+    }
+}

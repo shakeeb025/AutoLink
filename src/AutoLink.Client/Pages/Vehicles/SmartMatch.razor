@@ -1,0 +1,250 @@
+@page "/smart-match"
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@using AutoLink.Client.Components
+@inject RecommendationService RecommendationService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>AutoLink | AI Smart Match Recommendation Engine</PageTitle>
+
+<div class="mb-8">
+    <div class="d-inline-flex align-center gap-2 px-3 py-1 rounded-pill bg-primary-subtle mb-3 border border-primary">
+        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Color="Color.Primary" Size="Size.Small" />
+        <span style="font-size: 0.82rem; font-weight: 600; color: #0071E3; letter-spacing: -0.01em;">Multi-Variable Weighted Matching Engine</span>
+    </div>
+    <MudText Typo="Typo.h3" Class="font-weight-bold mb-2" Style="letter-spacing: -0.02em;">Smart Vehicle Matchmaker</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Style="max-width: 800px; line-height: 1.6;">
+        Our algorithm evaluates budget (30%), body styling (20%), powertrain & fuel (20%), model year (15%), and mileage (15%) to score and rank available marketplace listings specifically for your needs.
+    </MudText>
+</div>
+
+<MudGrid Spacing="4">
+    <!-- Left: Interactive Preference Tuning Card -->
+    <MudItem xs="12" lg="4">
+        <MudPaper Elevation="0" Class="apple-card pa-6 sticky-top" Style="top: 84px;">
+            <div class="d-flex justify-space-between align-center mb-5">
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.01em;">Preferences</MudText>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Class="apple-btn" StartIcon="@Icons.Material.Filled.Save" OnClick="SavePreferencesAsync">
+                    Save to Profile
+                </MudButton>
+            </div>
+
+            <!-- Budget Range -->
+            <div class="mb-5">
+                <div class="d-flex justify-space-between align-center mb-2">
+                    <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B;">TARGET BUDGET RANGE (30%)</MudText>
+                    <MudText Typo="Typo.caption" Class="font-weight-bold text-primary">
+                        $@((_prefs.MinBudget ?? 20000).ToString("N0")) - $@((_prefs.MaxBudget ?? 90000).ToString("N0"))
+                    </MudText>
+                </div>
+                <MudGrid Spacing="2">
+                    <MudItem xs="6">
+                        <MudNumericField T="decimal?" Label="Min ($)" @bind-Value="_prefs.MinBudget" Min="0" Step="5000" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField T="decimal?" Label="Max ($)" @bind-Value="_prefs.MaxBudget" Min="0" Step="5000" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+            </div>
+
+            <!-- Body Types Multi-Select -->
+            <div class="mb-5">
+                <MudText Typo="Typo.caption" Class="font-weight-bold mb-2 d-block" Style="color: #86868B;">BODY STYLES (20% WEIGHT)</MudText>
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach (BodyType bt in Enum.GetValues(typeof(BodyType)))
+                    {
+                        bool isSelected = _prefs.PreferredBodyTypes.Contains(bt);
+                        <MudChip T="string"
+                                 Color="@(isSelected ? Color.Primary : Color.Default)"
+                                 Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                 Size="Size.Small"
+                                 Class="apple-pill font-weight-medium"
+                                 OnClick="@(() => ToggleBodyType(bt))">
+                            @bt
+                        </MudChip>
+                    }
+                </div>
+            </div>
+
+            <!-- Fuel Types -->
+            <div class="mb-5">
+                <MudText Typo="Typo.caption" Class="font-weight-bold mb-2 d-block" Style="color: #86868B;">POWERTRAIN & FUEL (10% WEIGHT)</MudText>
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach (FuelType ft in Enum.GetValues(typeof(FuelType)))
+                    {
+                        bool isSelected = _prefs.PreferredFuelTypes.Contains(ft);
+                        <MudChip T="string"
+                                 Color="@(isSelected ? Color.Secondary : Color.Default)"
+                                 Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                 Size="Size.Small"
+                                 Class="apple-pill font-weight-medium"
+                                 OnClick="@(() => ToggleFuelType(ft))">
+                            @ft
+                        </MudChip>
+                    }
+                </div>
+            </div>
+
+            <!-- Transmission -->
+            <div class="mb-5">
+                <MudText Typo="Typo.caption" Class="font-weight-bold mb-2 d-block" Style="color: #86868B;">TRANSMISSION (10% WEIGHT)</MudText>
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach (TransmissionType tt in Enum.GetValues(typeof(TransmissionType)))
+                    {
+                        bool isSelected = _prefs.PreferredTransmissions.Contains(tt);
+                        <MudChip T="string"
+                                 Color="@(isSelected ? Color.Tertiary : Color.Default)"
+                                 Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                 Size="Size.Small"
+                                 Class="apple-pill font-weight-medium"
+                                 OnClick="@(() => ToggleTransmission(tt))">
+                            @tt
+                        </MudChip>
+                    }
+                </div>
+            </div>
+
+            <!-- Min Year & Max Mileage -->
+            <MudGrid Spacing="2" Class="mb-5">
+                <MudItem xs="6">
+                    <MudNumericField T="int?" Label="Min Year (15%)" @bind-Value="_prefs.MinYear" Min="2010" Max="2026" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="int?" Label="Max Mileage (15%)" @bind-Value="_prefs.MaxMileage" Min="0" Step="5000" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Class="apple-btn py-3"
+                       StartIcon="@Icons.Material.Filled.Bolt"
+                       OnClick="RecalculateMatchesAsync">
+                Recalculate Matches
+            </MudButton>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Right: Ranked Recommendation Cards -->
+    <MudItem xs="12" lg="8">
+        @if (_calculating)
+        {
+            <div class="d-flex flex-column align-center justify-center my-16">
+                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" Class="mb-4" />
+                <MudText Typo="Typo.h6" Class="font-weight-bold">Scoring Marketplace Vehicles...</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Applying multi-variable weight matrix against active inventory</MudText>
+            </div>
+        }
+        else if (_matches.Count == 0)
+        {
+            <MudPaper Elevation="0" Class="apple-card pa-12 text-center my-4">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+                <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">No Matches Found</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+                    No vehicles found matching your criteria. Try widening your budget or selecting more body types.
+                </MudText>
+            </MudPaper>
+        }
+        else
+        {
+            <div class="mb-4 d-flex justify-space-between align-center flex-wrap gap-2">
+                <MudText Typo="Typo.h5" Class="font-weight-bold" Style="letter-spacing: -0.02em;">
+                    Ranked Matches (@_matches.Count Options)
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Sorted by overall compatibility score
+                </MudText>
+            </div>
+
+            <MudGrid Spacing="4">
+                @foreach (var match in _matches)
+                {
+                    <MudItem xs="12" sm="6">
+                        <AutoLink.Client.Components.VehicleCard Vehicle="match.Vehicle"
+                                                                MatchScore="match.MatchPercentage"
+                                                                MatchBreakdown="match.Breakdown" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    private CustomerPreferenceDto _prefs = new()
+    {
+        MinBudget = 30000,
+        MaxBudget = 85000,
+        MinYear = 2021,
+        MaxMileage = 40000,
+        PreferredBodyTypes = new() { BodyType.Sedan, BodyType.SUV },
+        PreferredFuelTypes = new() { FuelType.Electric, FuelType.Petrol, FuelType.Hybrid },
+        PreferredTransmissions = new() { TransmissionType.Automatic }
+    };
+
+    private List<VehicleMatchDto> _matches = new();
+    private bool _calculating = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Try loading customer saved preferences if logged in
+        var prefRes = await RecommendationService.GetCustomerPreferencesAsync();
+        if (prefRes.Success && prefRes.Data != null && prefRes.Data.MinBudget.HasValue)
+        {
+            _prefs = prefRes.Data;
+        }
+
+        await RecalculateMatchesAsync();
+    }
+
+    private void ToggleBodyType(BodyType bt)
+    {
+        if (_prefs.PreferredBodyTypes.Contains(bt))
+            _prefs.PreferredBodyTypes.Remove(bt);
+        else
+            _prefs.PreferredBodyTypes.Add(bt);
+    }
+
+    private void ToggleFuelType(FuelType ft)
+    {
+        if (_prefs.PreferredFuelTypes.Contains(ft))
+            _prefs.PreferredFuelTypes.Remove(ft);
+        else
+            _prefs.PreferredFuelTypes.Add(ft);
+    }
+
+    private void ToggleTransmission(TransmissionType tt)
+    {
+        if (_prefs.PreferredTransmissions.Contains(tt))
+            _prefs.PreferredTransmissions.Remove(tt);
+        else
+            _prefs.PreferredTransmissions.Add(tt);
+    }
+
+    private async Task RecalculateMatchesAsync()
+    {
+        _calculating = true;
+        var res = await RecommendationService.EvaluateCustomPreferencesAsync(_prefs);
+        if (res.Success && res.Data != null)
+        {
+            _matches = res.Data;
+        }
+        _calculating = false;
+    }
+
+    private async Task SavePreferencesAsync()
+    {
+        var res = await RecommendationService.SaveCustomerPreferencesAsync(_prefs);
+        if (res.Success)
+        {
+            Snackbar.Add("Your match preferences were saved to your profile!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Please sign in as a customer to save preferences.", Severity.Warning);
+        }
+    }
+}

@@ -1,0 +1,46 @@
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Authorization
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12 text-center">
+                        <MudPaper Elevation="0" Class="apple-card pa-8 pa-md-12">
+                            <div class="pa-3 rounded-circle d-inline-flex align-center justify-center bg-warning-subtle mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" />
+                            </div>
+                            <MudText Typo="Typo.h5" Class="font-weight-bold mb-2" Style="letter-spacing: -0.02em;">Access Restricted</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+                                You do not have permission to view this section or need to sign in with an authorized account.
+                            </MudText>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn px-6 py-2.5" Href="/login">
+                                Go to Sign In
+                            </MudButton>
+                        </MudPaper>
+                    </MudContainer>
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(Layout.MainLayout)">
+                <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12 text-center">
+                    <MudPaper Elevation="0" Class="apple-card pa-8 pa-md-12">
+                        <div class="pa-3 rounded-circle d-inline-flex align-center justify-center bg-primary-subtle mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Primary" />
+                        </div>
+                        <MudText Typo="Typo.h5" Class="font-weight-bold mb-2" Style="letter-spacing: -0.02em;">Page Not Found</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">
+                            The vehicle page or resource you are looking for does not exist.
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn px-6 py-2.5" Href="/">
+                            Return to Marketplace Home
+                        </MudButton>
+                    </MudPaper>
+                </MudContainer>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

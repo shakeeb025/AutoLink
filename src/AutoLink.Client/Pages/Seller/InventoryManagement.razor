@@ -1,0 +1,219 @@
+@page "/seller/inventory"
+@attribute [Authorize(Roles = "Seller")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@using AutoLink.Client.Components
+@inject VehicleService VehicleService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>AutoLink | Inventory Management Hub</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Inventory Manager</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Manage your active inventory, update pricing, toggle availability, and track views
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               Class="apple-btn"
+               StartIcon="@Icons.Material.Filled.AddCircle"
+               OnClick="OpenCreateDialogAsync">
+        Add Vehicle Listing
+    </MudButton>
+</div>
+
+<MudPaper Elevation="0" Class="apple-card pa-6">
+    <!-- Filter & Search Bar -->
+    <div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-3">
+        <MudTextField T="string"
+                      @bind-Value="_searchString"
+                      Placeholder="Search by make, model, year..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Immediate="true"
+                      Margin="Margin.Dense"
+                      Variant="Variant.Outlined"
+                      Class="apple-pill"
+                      Style="max-width: 340px;" />
+
+        <div class="d-flex gap-2">
+            <MudSelect T="VehicleStatus?" Label="Filter Status" @bind-Value="_statusFilter" SelectedValuesChanged="LoadInventoryAsync" Margin="Margin.Dense" Variant="Variant.Outlined" Clearable="true" Style="min-width: 160px;">
+                <MudSelectItem Value="@((VehicleStatus?)VehicleStatus.Available)">Available</MudSelectItem>
+                <MudSelectItem Value="@((VehicleStatus?)VehicleStatus.Reserved)">Reserved</MudSelectItem>
+                <MudSelectItem Value="@((VehicleStatus?)VehicleStatus.Sold)">Sold</MudSelectItem>
+            </MudSelect>
+        </div>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="d-flex justify-center my-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <MudTable Items="@FilteredInventory" Hover="true" Striped="false" Dense="true" Elevation="0">
+            <HeaderContent>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">PHOTO</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">VEHICLE</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">PRICE</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">MILEAGE</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">STATUS</MudTh>
+                <MudTh style="color: #86868B; font-weight: 600; font-size: 0.75rem;">VIEWS</MudTh>
+                <MudTh Class="text-right" style="color: #86868B; font-weight: 600; font-size: 0.75rem;">ACTIONS</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <div class="rounded-lg overflow-hidden" style="width: 72px; height: 48px;">
+                        <img src="@context.PrimaryImageUrl" alt="Car" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                </MudTd>
+                <MudTd>
+                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold">
+                        @context.Year @context.Make @context.Model
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @context.BodyType • @context.FuelType • @context.Transmission
+                    </MudText>
+                </MudTd>
+                <MudTd Class="font-weight-bold text-primary">
+                    $@context.Price.ToString("N0")
+                </MudTd>
+                <MudTd>
+                    @context.Mileage.ToString("N0") mi
+                </MudTd>
+                <MudTd>
+                    <MudMenu Label="@context.Status.ToString()"
+                             Variant="Variant.Filled"
+                             Size="Size.Small"
+                             Class="apple-pill font-weight-medium"
+                             Color="@GetStatusColor(context.Status)"
+                             EndIcon="@Icons.Material.Filled.ArrowDropDown">
+                        <MudMenuItem OnClick="@(() => UpdateStatusAsync(context.Id, VehicleStatus.Available))">Available</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => UpdateStatusAsync(context.Id, VehicleStatus.Reserved))">Reserved</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => UpdateStatusAsync(context.Id, VehicleStatus.Sold))">Sold</MudMenuItem>
+                    </MudMenu>
+                </MudTd>
+                <MudTd>
+                    <div class="d-flex align-center gap-1 font-weight-medium">
+                        <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Secondary" />
+                        <span>@context.ViewsCount</span>
+                    </div>
+                </MudTd>
+                <MudTd Class="text-right">
+                    <MudIconButton Icon="@Icons.Material.Filled.Launch" Size="Size.Small" aria-label="View Listing" OnClick="@(() => Navigation.NavigateTo($"/vehicles/{context.Id}"))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" aria-label="Edit" OnClick="@(() => OpenEditDialogAsync(context.Id))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" aria-label="Delete" OnClick="@(() => DeleteVehicleAsync(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    private bool _loading = true;
+    private List<VehicleDto> _inventory = new();
+    private string _searchString = string.Empty;
+    private VehicleStatus? _statusFilter;
+
+    private IEnumerable<VehicleDto> FilteredInventory => _inventory.Where(v =>
+        string.IsNullOrWhiteSpace(_searchString) ||
+        v.Make.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        v.Model.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        v.Year.ToString().Contains(_searchString));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInventoryAsync();
+    }
+
+    private async Task LoadInventoryAsync()
+    {
+        _loading = true;
+        var res = await VehicleService.GetMyInventoryAsync(_statusFilter);
+        if (res.Success && res.Data != null)
+        {
+            _inventory = res.Data;
+        }
+        _loading = false;
+    }
+
+    private async Task OpenCreateDialogAsync()
+    {
+        var dialog = await DialogService.ShowAsync<ListingFormDialog>("Add Listing");
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await LoadInventoryAsync();
+        }
+    }
+
+    private async Task OpenEditDialogAsync(int id)
+    {
+        var detailRes = await VehicleService.GetVehicleByIdAsync(id);
+        if (detailRes.Success && detailRes.Data != null)
+        {
+            var parameters = new DialogParameters { ["ExistingVehicle"] = detailRes.Data };
+            var dialog = await DialogService.ShowAsync<ListingFormDialog>("Edit Listing", parameters);
+            var result = await dialog.Result;
+            if (result != null && !result.Canceled)
+            {
+                await LoadInventoryAsync();
+            }
+        }
+    }
+
+    private async Task UpdateStatusAsync(int vehicleId, VehicleStatus status)
+    {
+        var res = await VehicleService.UpdateVehicleStatusAsync(vehicleId, status);
+        if (res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Success);
+            await LoadInventoryAsync();
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to update status", Severity.Error);
+        }
+    }
+
+    private async Task DeleteVehicleAsync(int vehicleId)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Delete Listing",
+            "Are you sure you want to remove this vehicle from your inventory? This cannot be undone.",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (confirm == true)
+        {
+            var res = await VehicleService.DeleteVehicleAsync(vehicleId);
+            if (res.Success)
+            {
+                Snackbar.Add("Vehicle listing removed", Severity.Info);
+                await LoadInventoryAsync();
+            }
+            else
+            {
+                Snackbar.Add(res.Message ?? "Failed to delete vehicle", Severity.Error);
+            }
+        }
+    }
+
+    private Color GetStatusColor(VehicleStatus status) => status switch
+    {
+        VehicleStatus.Available => Color.Success,
+        VehicleStatus.Reserved => Color.Warning,
+        VehicleStatus.Sold => Color.Error,
+        _ => Color.Default
+    };
+}

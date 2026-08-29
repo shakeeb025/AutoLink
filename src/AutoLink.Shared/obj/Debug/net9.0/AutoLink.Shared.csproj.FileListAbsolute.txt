@@ -1,0 +1,11 @@
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/bin/Debug/net9.0/AutoLink.Shared.deps.json
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/bin/Debug/net9.0/AutoLink.Shared.dll
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/bin/Debug/net9.0/AutoLink.Shared.pdb
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/AutoLink.Shared.GeneratedMSBuildEditorConfig.editorconfig
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/AutoLink.Shared.AssemblyInfoInputs.cache
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/AutoLink.Shared.AssemblyInfo.cs
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/AutoLink.Shared.csproj.CoreCompileInputs.cache
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/AutoLink.Shared.dll
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/refint/AutoLink.Shared.dll
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/AutoLink.Shared.pdb
+/Users/shakeeb/Desktop/Auto Link/Project/src/AutoLink.Shared/obj/Debug/net9.0/ref/AutoLink.Shared.dll

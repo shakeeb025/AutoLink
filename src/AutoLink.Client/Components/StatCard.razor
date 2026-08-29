@@ -1,0 +1,44 @@
+@using MudBlazor
+
+<MudPaper Elevation="0" Class="apple-card pa-5 d-flex align-center justify-space-between position-relative overflow-hidden hover-elevate">
+    <div>
+        <MudText Typo="Typo.caption" Class="font-weight-bold" Style="color: #86868B; letter-spacing: 0.04em; text-transform: uppercase;">@Title</MudText>
+        <MudText Typo="Typo.h4" Class="font-weight-bold my-1" Style="letter-spacing: -0.02em;">@Value</MudText>
+        @if (!string.IsNullOrEmpty(Subtext))
+        {
+            <div class="d-flex align-center gap-1 mt-1">
+                @if (IsPositiveTrend.HasValue)
+                {
+                    <MudIcon Icon="@(IsPositiveTrend.Value ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)"
+                             Size="Size.Small"
+                             Color="@(IsPositiveTrend.Value ? Color.Success : Color.Error)" />
+                }
+                <MudText Typo="Typo.caption" Class="@(IsPositiveTrend == true ? "text-success font-weight-bold" : IsPositiveTrend == false ? "text-danger font-weight-bold" : "text-secondary")">
+                    @Subtext
+                </MudText>
+            </div>
+        }
+    </div>
+    <div class="rounded-circle pa-3 d-flex align-center justify-center" style="@GetIconCircleStyle()">
+        <MudIcon Icon="@Icon" Size="Size.Medium" Color="@IconColor" />
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Icon { get; set; } = Icons.Material.Filled.Analytics;
+    [Parameter] public Color IconColor { get; set; } = Color.Primary;
+    [Parameter] public string? Subtext { get; set; }
+    [Parameter] public bool? IsPositiveTrend { get; set; }
+
+    private string GetIconCircleStyle() => IconColor switch
+    {
+        Color.Primary => "background: rgba(0, 113, 227, 0.10);",
+        Color.Secondary => "background: rgba(2, 132, 199, 0.10);",
+        Color.Success => "background: rgba(52, 199, 89, 0.12);",
+        Color.Warning => "background: rgba(255, 149, 0, 0.12);",
+        Color.Tertiary => "background: rgba(255, 214, 10, 0.15);",
+        _ => "background: rgba(134, 134, 139, 0.10);"
+    };
+}

@@ -1,0 +1,154 @@
+@page "/seller/bookings"
+@attribute [Authorize(Roles = "Seller")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@inject BookingService BookingService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>AutoLink | Test Drive Bookings Workflow</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Test Drive Queue</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Review customer appointment requests, accept, reschedule, or complete test drives
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="apple-btn" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadBookingsAsync">
+        Refresh Queue
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center my-16">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (_bookings.Count == 0)
+{
+    <MudPaper Elevation="0" Class="apple-card pa-12 text-center border rounded-xl my-4">
+        <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+        <MudText Typo="Typo.h6" Class="font-weight-bold mb-2">No Test Drive Bookings</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">New customer appointment requests will appear here in real-time.</MudText>
+    </MudPaper>
+}
+else
+{
+    <MudGrid Spacing="4">
+        @foreach (var b in _bookings)
+        {
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="0" Class="apple-card pa-6 border h-100 d-flex flex-column justify-space-between hover-elevate">
+                    <div>
+                        <div class="d-flex justify-space-between align-start mb-3 flex-wrap gap-2">
+                            <div>
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@b.VehicleTitle</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Buyer: @b.CustomerName (@b.CustomerPhone)</MudText>
+                            </div>
+                            <MudChip T="string" Color="@GetStatusColor(b.Status)" Variant="Variant.Filled" Size="Size.Small" Class="apple-pill font-weight-bold">
+                                @b.Status
+                            </MudChip>
+                        </div>
+
+                        <div class="pa-4 rounded-xl bg-surface border my-3">
+                            <div class="d-flex align-center gap-2 mb-1">
+                                <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" Color="Color.Primary" />
+                                <MudText Typo="Typo.body2" Class="font-weight-bold">@b.ScheduledDate.ToString("ddd, MMM dd, yyyy")</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">• @b.PreferredTimeSlot</MudText>
+                            </div>
+                            @if (!string.IsNullOrEmpty(b.Notes))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-2">
+                                    Notes: @b.Notes
+                                </MudText>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(b.DealerNotes))
+                        {
+                            <div class="pa-3 rounded-xl bg-surface border mb-3">
+                                <MudText Typo="Typo.caption" Color="Color.Primary" Class="font-weight-bold mb-1 d-block">Dealer Remarks:</MudText>
+                                <MudText Typo="Typo.body2">@b.DealerNotes</MudText>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Workflow Actions -->
+                    <div class="d-flex justify-end gap-2 mt-4 pt-3 border-t">
+                        @if (b.Status == BookingStatus.Requested)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" Class="apple-btn" StartIcon="@Icons.Material.Filled.Check" OnClick="@(() => UpdateBookingAsync(b.Id, BookingStatus.Approved))">
+                                Approve Slot
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" Class="apple-btn" StartIcon="@Icons.Material.Filled.Close" OnClick="@(() => UpdateBookingAsync(b.Id, BookingStatus.Rejected))">
+                                Reject
+                            </MudButton>
+                        }
+                        else if (b.Status == BookingStatus.Approved)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Class="apple-btn" StartIcon="@Icons.Material.Filled.DoneAll" OnClick="@(() => UpdateBookingAsync(b.Id, BookingStatus.Completed))">
+                                Mark Completed
+                            </MudButton>
+                        }
+                    </div>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private List<TestDriveDto> _bookings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookingsAsync();
+    }
+
+    private async Task LoadBookingsAsync()
+    {
+        _loading = true;
+        var res = await BookingService.GetDealerBookingsAsync();
+        if (res.Success && res.Data != null)
+        {
+            _bookings = res.Data;
+        }
+        _loading = false;
+    }
+
+    private async Task UpdateBookingAsync(int bookingId, BookingStatus status)
+    {
+        string? notes = status == BookingStatus.Approved ? "Vehicle staged at dealer front entrance." : null;
+        var dto = new UpdateBookingStatusDto
+        {
+            BookingId = bookingId,
+            Status = status,
+            DealerNotes = notes
+        };
+
+        var res = await BookingService.UpdateBookingStatusAsync(dto);
+        if (res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Success);
+            await LoadBookingsAsync();
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to update booking status", Severity.Error);
+        }
+    }
+
+    private Color GetStatusColor(BookingStatus status) => status switch
+    {
+        BookingStatus.Approved => Color.Success,
+        BookingStatus.Requested => Color.Warning,
+        BookingStatus.Completed => Color.Primary,
+        BookingStatus.Rejected => Color.Error,
+        _ => Color.Default
+    };
+}

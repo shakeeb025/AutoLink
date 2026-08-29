@@ -1,0 +1,191 @@
+@inherits LayoutComponentBase
+@using AutoLink.Client.Theme
+@using AutoLink.Client.Services
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject ComparisonService ComparisonService
+@inject SiteConfigService SiteConfigService
+
+<MudThemeProvider Theme="_currentTheme" IsDarkMode="_isDarkMode" />
+<MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Small" CloseButton="true" BackdropClick="false" />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout Class="apple-layout">
+    <!-- Enterprise Frosted App Bar (White / Obsidian Black) -->
+    <MudAppBar Elevation="0" Dense="false" Class="@(_isDarkMode ? "apple-glass-dark px-3 px-md-6" : "apple-glass px-3 px-md-6")" Style="height: 68px;">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" Class="me-2" aria-label="Toggle Menu" />
+        
+        <!-- Dynamic Logo Branding (White, Black & Performance Red) -->
+        <div class="d-flex align-center cursor-pointer me-6" @onclick="@(() => Navigation.NavigateTo("/"))">
+            <div class="pa-1.5 rounded-circle me-2 d-flex align-center justify-center bg-primary-subtle">
+                <MudIcon Icon="@Icons.Material.Filled.DirectionsCarFilled" Color="Color.Primary" Size="Size.Medium" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.03em; line-height: 1;">
+                    @SiteConfigService.Config.SiteTitle
+                </MudText>
+                <MudText Typo="Typo.caption" Style="font-size: 0.62rem; color: #71717A; letter-spacing: 0.06em; display: block; font-weight: 700;">
+                    @SiteConfigService.Config.SiteTagline
+                </MudText>
+            </div>
+        </div>
+
+        <MudSpacer />
+
+        <!-- Navigation Links in Header for Desktop -->
+        <div class="d-none d-md-flex align-center gap-1 me-3">
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="apple-btn px-3" StartIcon="@Icons.Material.Filled.Search" OnClick="@(() => Navigation.NavigateTo("/discovery"))">
+                Browse
+            </MudButton>
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="apple-btn px-3" StartIcon="@Icons.Material.Filled.AutoAwesome" OnClick="@(() => Navigation.NavigateTo("/smart-match"))">
+                AI Smart Match
+            </MudButton>
+            
+            <AuthorizeView Roles="Customer">
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="apple-btn px-3" StartIcon="@Icons.Material.Filled.Garage" OnClick="@(() => Navigation.NavigateTo("/customer/portal"))">
+                    My Garage
+                </MudButton>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Seller">
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="apple-btn px-3" StartIcon="@Icons.Material.Filled.Storefront" OnClick="@(() => Navigation.NavigateTo("/seller/dashboard"))">
+                    Dealer Portal
+                </MudButton>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Admin">
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="apple-btn px-3" StartIcon="@Icons.Material.Filled.AdminPanelSettings" OnClick="@(() => Navigation.NavigateTo("/admin/dashboard"))">
+                    Admin
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="apple-btn px-3" StartIcon="@Icons.Material.Filled.Palette" OnClick="@(() => Navigation.NavigateTo("/admin/settings"))">
+                    Studio
+                </MudButton>
+            </AuthorizeView>
+        </div>
+
+        <!-- Vehicle Comparison Badge -->
+        <MudBadge Content="@ComparisonService.Count" Color="Color.Primary" Overlap="true" Visible="@(ComparisonService.Count > 0)" Class="me-2">
+            <MudIconButton Icon="@Icons.Material.Filled.CompareArrows"
+                           Color="Color.Inherit"
+                           aria-label="Compare Vehicles"
+                           OnClick="@(() => Navigation.NavigateTo("/vehicles/compare"))" />
+        </MudBadge>
+
+        <!-- Dark/Light Mode Toggle -->
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit"
+                       OnClick="ToggleDarkMode"
+                       Class="me-2"
+                       aria-label="Toggle Theme" />
+
+        <!-- Authentication Area -->
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <ActivatorContent>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Person" Class="apple-pill cursor-pointer font-weight-medium">
+                            @(context.User.Identity?.Name ?? "My Account")
+                        </MudChip>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <div class="px-4 py-3">
+                            <MudText Typo="Typo.subtitle2" Class="font-weight-bold">@context.User.Identity?.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Signed in</MudText>
+                        </div>
+                        <MudDivider />
+                        <AuthorizeView Roles="Customer" Context="cust">
+                            <MudMenuItem Icon="@Icons.Material.Filled.Garage" OnClick="@(() => Navigation.NavigateTo("/customer/portal"))">Customer Garage</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Favorite" OnClick="@(() => Navigation.NavigateTo("/customer/portal?tab=favorites"))">Saved Vehicles</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Event" OnClick="@(() => Navigation.NavigateTo("/customer/portal?tab=testdrives"))">My Test Drives</MudMenuItem>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="Seller" Context="sel">
+                            <MudMenuItem Icon="@Icons.Material.Filled.Speed" OnClick="@(() => Navigation.NavigateTo("/seller/dashboard"))">Dealer Dashboard</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.DirectionsCar" OnClick="@(() => Navigation.NavigateTo("/seller/inventory"))">Inventory Manager</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.EventNote" OnClick="@(() => Navigation.NavigateTo("/seller/bookings"))">Booking Queue</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.CardMembership" OnClick="@(() => Navigation.NavigateTo("/seller/subscription"))">SaaS Membership</MudMenuItem>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="Admin" Context="adm">
+                            <MudMenuItem Icon="@Icons.Material.Filled.Analytics" OnClick="@(() => Navigation.NavigateTo("/admin/dashboard"))">Platform Analytics</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Palette" OnClick="@(() => Navigation.NavigateTo("/admin/settings"))">Branding & Banner Studio</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.VerifiedUser" OnClick="@(() => Navigation.NavigateTo("/admin/approvals"))">Seller Approvals</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Security" OnClick="@(() => Navigation.NavigateTo("/admin/moderation"))">Listing Moderation</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.PeopleAlt" OnClick="@(() => Navigation.NavigateTo("/admin/users"))">User Directory</MudMenuItem>
+                        </AuthorizeView>
+                        <MudDivider />
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnClick="LogoutAsync">Sign Out</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <div class="d-flex gap-2 align-center">
+                    <MudButton Variant="Variant.Text" Color="Color.Inherit" Size="Size.Small" Class="apple-btn px-3" OnClick="@(() => Navigation.NavigateTo("/login"))">
+                        Sign In
+                    </MudButton>
+                    <MudMenu Label="Join" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Class="apple-btn" EndIcon="@Icons.Material.Filled.ArrowDropDown">
+                        <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd" OnClick="@(() => Navigation.NavigateTo("/register-customer"))">Buyer Account (Free)</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Store" OnClick="@(() => Navigation.NavigateTo("/register-seller"))">Dealership SaaS Sign Up</MudMenuItem>
+                    </MudMenu>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <!-- Side Navigation Drawer -->
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Variant="DrawerVariant.Responsive" Class="border-r">
+        <AutoLink.Client.Layout.NavMenu />
+    </MudDrawer>
+
+    <!-- Main Content Body -->
+    <MudMainContent Class="pa-4 pa-md-8" Style="max-width: 1440px; margin: 0 auto; width: 100%;">
+        @Body
+    </MudMainContent>
+
+    <!-- Apple Mobile Bottom Navigation Bar -->
+    <div class="apple-bottom-bar px-2">
+        <MudIconButton Icon="@Icons.Material.Filled.Home" Color="Color.Inherit" aria-label="Home" OnClick="@(() => Navigation.NavigateTo("/"))" />
+        <MudIconButton Icon="@Icons.Material.Filled.Search" Color="Color.Inherit" aria-label="Browse" OnClick="@(() => Navigation.NavigateTo("/discovery"))" />
+        <MudIconButton Icon="@Icons.Material.Filled.AutoAwesome" Color="Color.Primary" aria-label="AI Smart Match" OnClick="@(() => Navigation.NavigateTo("/smart-match"))" />
+        
+        <AuthorizeView Roles="Customer">
+            <MudIconButton Icon="@Icons.Material.Filled.Garage" Color="Color.Inherit" aria-label="My Garage" OnClick="@(() => Navigation.NavigateTo("/customer/portal"))" />
+        </AuthorizeView>
+        <AuthorizeView Roles="Seller">
+            <MudIconButton Icon="@Icons.Material.Filled.Storefront" Color="Color.Inherit" aria-label="Dealer Hub" OnClick="@(() => Navigation.NavigateTo("/seller/dashboard"))" />
+        </AuthorizeView>
+        <AuthorizeView Roles="Admin">
+            <MudIconButton Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Inherit" aria-label="Admin" OnClick="@(() => Navigation.NavigateTo("/admin/dashboard"))" />
+        </AuthorizeView>
+        <AuthorizeView>
+            <NotAuthorized>
+                <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" aria-label="Account" OnClick="@(() => Navigation.NavigateTo("/login"))" />
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _isDarkMode = false; // Default to Clean White Canvas
+    private MudTheme _currentTheme = AppTheme.CustomTheme;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ComparisonService.OnComparisonChanged += StateHasChanged;
+        SiteConfigService.OnConfigChanged += StateHasChanged;
+        await SiteConfigService.InitializeAsync();
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    private void ToggleDarkMode() => _isDarkMode = !_isDarkMode;
+
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Snackbar.Add("Logged out successfully.", Severity.Info);
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

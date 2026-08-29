@@ -1,0 +1,127 @@
+@using AutoLink.Shared.DTOs
+@using AutoLink.Client.Services
+@inject BookingService BookingService
+@inject ISnackbar Snackbar
+
+<MudDialog Class="apple-card pa-2" Style="border-radius: 20px;">
+    <TitleContent>
+        <div class="d-flex align-center gap-2 pt-2 px-2">
+            <div class="pa-2 rounded-circle bg-primary-subtle d-flex align-center justify-center">
+                <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" Size="Size.Small" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.01em;">Contact Dealership</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@Vehicle.DealerName • @Vehicle.Year @Vehicle.Make @Vehicle.Model</MudText>
+            </div>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div class="px-2">
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField T="string"
+                          Label="Your Full Name"
+                          @bind-Value="_customerName"
+                          Required="true"
+                          RequiredError="Name is required"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3 mt-2" />
+
+            <MudTextField T="string"
+                          Label="Your Email"
+                          @bind-Value="_customerEmail"
+                          Required="true"
+                          RequiredError="Email is required"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3" />
+
+            <MudTextField T="string"
+                          Label="Phone Number (Optional)"
+                          @bind-Value="_customerPhone"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3" />
+
+            <MudTextField T="string"
+                          Label="Your Message / Questions"
+                          @bind-Value="_message"
+                          Lines="4"
+                          Required="true"
+                          RequiredError="Please write a message"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Placeholder="Ask about vehicle history, pricing, finance options..."
+                          Class="mb-2" />
+        </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Class="apple-btn">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Class="apple-btn px-5"
+                   OnClick="SubmitInquiryAsync"
+                   Disabled="@(!_isValid || _submitting)">
+            @if (_submitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <span class="ms-2">Sending...</span>
+            }
+            else
+            {
+                <span>Send Message</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter, EditorRequired] public VehicleDetailDto Vehicle { get; set; } = null!;
+    [Parameter] public string? DefaultName { get; set; }
+    [Parameter] public string? DefaultEmail { get; set; }
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+
+    private string _customerName = string.Empty;
+    private string _customerEmail = string.Empty;
+    private string _customerPhone = string.Empty;
+    private string _message = "Hello, I am interested in this vehicle and would like more information regarding its availability, maintenance history, and finance options.";
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(DefaultName)) _customerName = DefaultName;
+        if (!string.IsNullOrEmpty(DefaultEmail)) _customerEmail = DefaultEmail;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task SubmitInquiryAsync()
+    {
+        _submitting = true;
+        var dto = new CreateInquiryDto
+        {
+            VehicleId = Vehicle.Id,
+            CustomerName = _customerName,
+            CustomerEmail = _customerEmail,
+            CustomerPhone = _customerPhone,
+            Message = _message
+        };
+
+        var res = await BookingService.SubmitInquiryAsync(dto);
+        _submitting = false;
+
+        if (res.Success)
+        {
+            Snackbar.Add("Inquiry sent to dealer successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Failed to send inquiry.", Severity.Error);
+        }
+    }
+}

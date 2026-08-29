@@ -1,0 +1,208 @@
+@page "/seller/dashboard"
+@attribute [Authorize(Roles = "Seller")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Shared.Enums
+@using AutoLink.Client.Services
+@using AutoLink.Client.Components
+@inject AnalyticsService AnalyticsService
+@inject DealerService DealerService
+@inject VehicleService VehicleService
+@inject BookingService BookingService
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+<PageTitle>AutoLink | Dealership Management Dashboard</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Dealer Operations</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Real-time dealership sales funnel, inventory metrics, and buyer inquiries
+        </MudText>
+    </div>
+
+    <div class="d-flex gap-2">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Class="apple-btn"
+                   StartIcon="@Icons.Material.Filled.AddCircle"
+                   OnClick="OpenAddListingDialogAsync">
+            Add Vehicle
+        </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   Class="apple-btn"
+                   StartIcon="@Icons.Material.Filled.CardMembership"
+                   OnClick="@(() => Navigation.NavigateTo("/seller/subscription"))">
+            SaaS Plan
+        </MudButton>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center my-16">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else
+{
+    <!-- KPI Summary Grid -->
+    <MudGrid Class="mb-8" Spacing="4">
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Active Inventory"
+                                                 Value="@(_analytics?.ActiveListings.ToString() ?? "0")"
+                                                 Icon="@Icons.Material.Filled.DirectionsCar"
+                                                 IconColor="Color.Primary"
+                                                 Subtext="@($"{_dealer?.ActiveListingsCount} / {_dealer?.MaxListingLimit} Quota")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Total Views"
+                                                 Value="@(_analytics?.TotalViews.ToString("N0") ?? "0")"
+                                                 Icon="@Icons.Material.Filled.Visibility"
+                                                 IconColor="Color.Secondary"
+                                                 Subtext="+18% vs last month"
+                                                 IsPositiveTrend="true" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Pending Drives"
+                                                 Value="@(_analytics?.PendingTestDrives.ToString() ?? "0")"
+                                                 Icon="@Icons.Material.Filled.EventAvailable"
+                                                 IconColor="Color.Warning"
+                                                 Subtext="Awaiting response" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Conversion Rate"
+                                                 Value="@($"{_analytics?.LeadConversionRate ?? 0}%")"
+                                                 Icon="@Icons.Material.Filled.TrendingUp"
+                                                 IconColor="Color.Success"
+                                                 Subtext="@($"{_analytics?.CompletedSalesThisMonth} Sold Vehicles")"
+                                                 IsPositiveTrend="true" />
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Spacing="4">
+        <!-- Top Performing Inventory -->
+        <MudItem xs="12" md="7">
+            <MudPaper Elevation="0" Class="apple-card pa-6 h-100">
+                <div class="d-flex justify-space-between align-center mb-5">
+                    <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.01em;">Top Performing Listings</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Class="apple-btn" OnClick="@(() => Navigation.NavigateTo("/seller/inventory"))">
+                        Manage All →
+                    </MudButton>
+                </div>
+
+                @if (_analytics?.TopVehicles == null || _analytics.TopVehicles.Count == 0)
+                {
+                    <MudPaper Elevation="0" Class="pa-8 text-center border rounded-xl">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">No vehicle traffic recorded yet.</MudText>
+                    </MudPaper>
+                }
+                else
+                {
+                    <MudSimpleTable Hover="true" Dense="true" Class="rounded-xl overflow-hidden">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.08);">
+                                <th style="color: #86868B; font-weight: 600; font-size: 0.75rem;">VEHICLE</th>
+                                <th class="text-right" style="color: #86868B; font-weight: 600; font-size: 0.75rem;">VIEWS</th>
+                                <th class="text-right" style="color: #86868B; font-weight: 600; font-size: 0.75rem;">INQUIRIES</th>
+                                <th class="text-right" style="color: #86868B; font-weight: 600; font-size: 0.75rem;">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var top in _analytics.TopVehicles)
+                            {
+                                <tr>
+                                    <td class="font-weight-bold">@top.Title</td>
+                                    <td class="text-right font-weight-medium">@top.Views.ToString("N0")</td>
+                                    <td class="text-right font-weight-medium">@top.Inquiries</td>
+                                    <td class="text-right">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Launch" Size="Size.Small" Color="Color.Primary" OnClick="@(() => Navigation.NavigateTo($"/vehicles/{top.VehicleId}"))" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <!-- Dealership Account Status -->
+        <MudItem xs="12" md="5">
+            <MudPaper Elevation="0" Class="apple-card pa-6 h-100 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex justify-space-between align-center mb-3">
+                        <MudText Typo="Typo.h6" Class="font-weight-bold" Style="letter-spacing: -0.01em;">SaaS Plan & Quota</MudText>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="apple-pill font-weight-bold">
+                            @_dealer?.SubscriptionTier Tier
+                        </MudChip>
+                    </div>
+
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-5">
+                        Manage your listing allocation and active dealer features.
+                    </MudText>
+
+                    <div class="mb-5">
+                        <div class="d-flex justify-space-between mb-2">
+                            <MudText Typo="Typo.caption" Class="font-weight-bold" style="color: #86868B;">LISTING USAGE</MudText>
+                            <MudText Typo="Typo.caption" Class="font-weight-bold text-primary">@_dealer?.ActiveListingsCount / @_dealer?.MaxListingLimit Allocated</MudText>
+                        </div>
+                        <MudProgressLinear Color="Color.Primary"
+                                           Value="@((double)(_dealer?.ActiveListingsCount ?? 0) / Math.Max(1, _dealer?.MaxListingLimit ?? 1) * 100)"
+                                           Rounded="true"
+                                           Size="Size.Medium" />
+                    </div>
+
+                    <MudList T="string" Dense="true" Class="pa-0 mb-5">
+                        <MudListItem Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                            Priority Match Placement Enabled
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                            Instant Test Drive Scheduling
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
+                            Customer Lead CRM Inbox
+                        </MudListItem>
+                    </MudList>
+                </div>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           Class="apple-btn py-3"
+                           StartIcon="@Icons.Material.Filled.Upgrade"
+                           OnClick="@(() => Navigation.NavigateTo("/seller/subscription"))">
+                    Upgrade Subscription Tier
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private DealerAnalyticsDto? _analytics;
+    private DealerProfileDto? _dealer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        var aRes = await AnalyticsService.GetDealerAnalyticsAsync();
+        if (aRes.Success && aRes.Data != null) _analytics = aRes.Data;
+
+        var dRes = await DealerService.GetMyProfileAsync();
+        if (dRes.Success && dRes.Data != null) _dealer = dRes.Data;
+
+        _loading = false;
+    }
+
+    private async Task OpenAddListingDialogAsync()
+    {
+        var dialog = await DialogService.ShowAsync<ListingFormDialog>("Create Listing");
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await OnInitializedAsync();
+        }
+    }
+}

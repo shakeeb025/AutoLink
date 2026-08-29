@@ -1,0 +1,137 @@
+@page "/login"
+@using AutoLink.Shared.DTOs
+@using AutoLink.Client.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>AutoLink | Account Sign In</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-6 mt-md-12">
+    <MudPaper Elevation="0" Class="apple-card pa-8 pa-md-12">
+        <div class="text-center mb-8">
+            <div class="pa-3 rounded-circle d-inline-flex align-center justify-center bg-primary-subtle mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.DirectionsCarFilled" Size="Size.Large" Color="Color.Primary" />
+            </div>
+            <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Welcome Back</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Sign in to your AutoLink account</MudText>
+        </div>
+
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField T="string"
+                          Label="Email Address"
+                          @bind-Value="_model.Email"
+                          Required="true"
+                          RequiredError="Email is required"
+                          InputType="InputType.Email"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Email"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-4" />
+
+            <MudTextField T="string"
+                          Label="Password"
+                          @bind-Value="_model.Password"
+                          Required="true"
+                          RequiredError="Password is required"
+                          InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@(_showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                          OnAdornmentClick="@(() => _showPassword = !_showPassword)"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-6" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Class="apple-btn py-3"
+                       OnClick="SubmitLoginAsync"
+                       Disabled="@_submitting">
+                @if (_submitting)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <span class="ms-2">Signing In...</span>
+                }
+                else
+                {
+                    <span>Sign In</span>
+                }
+            </MudButton>
+        </MudForm>
+
+        <!-- Quick 1-Click Demo Logins for Fast Testing -->
+        <MudDivider Class="my-8" />
+        <MudText Typo="Typo.caption" Class="d-block text-center font-weight-bold mb-4" Style="color: #86868B; letter-spacing: 0.05em; text-transform: uppercase;">
+            1-Click Demo Account Login
+        </MudText>
+
+        <div class="d-flex flex-column gap-2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="apple-btn py-2" FullWidth="true" OnClick="@(() => LoginDemoAsync("admin@autolink.com", "Admin@123"))" Disabled="@_submitting">
+                👑 Admin Demo (admin@autolink.com)
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Small" Class="apple-btn py-2" FullWidth="true" OnClick="@(() => LoginDemoAsync("prime@motors.com", "Seller@123"))" Disabled="@_submitting">
+                🏢 Dealership Demo (prime@motors.com)
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Size="Size.Small" Class="apple-btn py-2" FullWidth="true" OnClick="@(() => LoginDemoAsync("john@example.com", "Customer@123"))" Disabled="@_submitting">
+                👤 Buyer Demo (john@example.com)
+            </MudButton>
+        </div>
+
+        <div class="text-center mt-8">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Don't have an account yet? 
+                <MudLink Href="/register-customer" Color="Color.Primary" Class="font-weight-bold">Register as Buyer</MudLink> or 
+                <MudLink Href="/register-seller" Color="Color.Primary" Class="font-weight-bold">Dealer Sign Up</MudLink>
+            </MudText>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+    private bool _showPassword;
+    private LoginRequestDto _model = new();
+
+    private async Task LoginDemoAsync(string email, string pass)
+    {
+        _model.Email = email;
+        _model.Password = pass;
+        await SubmitLoginAsync();
+    }
+
+    private async Task SubmitLoginAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Email) || string.IsNullOrWhiteSpace(_model.Password))
+        {
+            await _form.Validate();
+            if (!_form.IsValid) return;
+        }
+
+        _submitting = true;
+        StateHasChanged();
+        
+        var res = await AuthService.LoginAsync(_model);
+        _submitting = false;
+
+        if (res.Success && res.Data != null)
+        {
+            Snackbar.Add($"Welcome back, {res.Data.User.FullName}!", Severity.Success);
+
+            if (res.Data.User.Role == "Admin")
+                Navigation.NavigateTo("/admin/dashboard");
+            else if (res.Data.User.Role == "Seller")
+                Navigation.NavigateTo("/seller/dashboard");
+            else
+                Navigation.NavigateTo("/discovery");
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Invalid email or password", Severity.Error);
+        }
+    }
+}

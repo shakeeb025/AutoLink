@@ -1,0 +1,143 @@
+@page "/admin/dashboard"
+@attribute [Authorize(Roles = "Admin")]
+@using AutoLink.Shared.DTOs
+@using AutoLink.Client.Services
+@using AutoLink.Client.Components
+@inject AdminService AdminService
+@inject NavigationManager Navigation
+
+<PageTitle>AutoLink | Administrator Platform Oversight</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-3">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Platform Overview</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            System-wide dealership activity, marketplace volume, and recurring SaaS subscription revenue
+        </MudText>
+    </div>
+
+    <div class="d-flex gap-2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="apple-btn" StartIcon="@Icons.Material.Filled.VerifiedUser" OnClick="@(() => Navigation.NavigateTo("/admin/approvals"))">
+            Verification Queue (@(_stats?.PendingDealerApprovals ?? 0))
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="apple-btn" StartIcon="@Icons.Material.Filled.Security" OnClick="@(() => Navigation.NavigateTo("/admin/moderation"))">
+            Moderate Listings
+        </MudButton>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center my-16">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (_stats != null)
+{
+    <!-- KPI Row -->
+    <MudGrid Class="mb-8" Spacing="4">
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Total Users"
+                                                 Value="@_stats.TotalUsers.ToString("N0")"
+                                                 Icon="@Icons.Material.Filled.PeopleAlt"
+                                                 IconColor="Color.Primary"
+                                                 Subtext="@($"{_stats.TotalCustomers} Buyers • {_stats.TotalDealers} Dealers")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Active Inventory"
+                                                 Value="@_stats.ActiveListings.ToString("N0")"
+                                                 Icon="@Icons.Material.Filled.DirectionsCar"
+                                                 IconColor="Color.Secondary"
+                                                 Subtext="@($"{_stats.TotalListings} Total Created")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Test Drives"
+                                                 Value="@_stats.TotalTestDrives.ToString("N0")"
+                                                 Icon="@Icons.Material.Filled.EventAvailable"
+                                                 IconColor="Color.Success"
+                                                 Subtext="@($"{_stats.TotalInquiries} Customer Inquiries")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <AutoLink.Client.Components.StatCard Title="Monthly SaaS"
+                                                 Value="@($"${_stats.MonthlySubscriptionRevenue:N0}")"
+                                                 Icon="@Icons.Material.Filled.MonetizationOn"
+                                                 IconColor="Color.Primary"
+                                                 Subtext="Dealer SaaS Subscriptions"
+                                                 IsPositiveTrend="true" />
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Spacing="4">
+        <!-- Top Brands Distribution -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="0" Class="apple-card pa-6 h-100">
+                <MudText Typo="Typo.h6" Class="font-weight-bold mb-5" Style="letter-spacing: -0.01em;">Inventory by Brand</MudText>
+                @if (_stats.TopBrands.Count == 0)
+                {
+                    <MudPaper Elevation="0" Class="pa-8 text-center border rounded-xl">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">No listings recorded.</MudText>
+                    </MudPaper>
+                }
+                else
+                {
+                    <MudList T="string" Dense="true" Class="pa-0">
+                        @foreach (var brand in _stats.TopBrands)
+                        {
+                            <div class="mb-4">
+                                <div class="d-flex justify-space-between align-center mb-1">
+                                    <MudText Typo="Typo.body2" Class="font-weight-bold">@brand.Brand</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@brand.ListingCount Listings</MudText>
+                                </div>
+                                <MudProgressLinear Color="Color.Primary"
+                                                   Value="@((double)brand.ListingCount / Math.Max(1, _stats.ActiveListings) * 100)"
+                                                   Rounded="true" />
+                            </div>
+                        }
+                    </MudList>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <!-- Platform Growth & Activity -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="0" Class="apple-card pa-6 h-100">
+                <MudText Typo="Typo.h6" Class="font-weight-bold mb-5" Style="letter-spacing: -0.01em;">Monthly Platform Growth</MudText>
+                <MudSimpleTable Dense="true" Hover="true" Class="rounded-xl overflow-hidden">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.08);">
+                            <th style="color: #86868B; font-weight: 600; font-size: 0.75rem;">MONTH</th>
+                            <th style="color: #86868B; font-weight: 600; font-size: 0.75rem;">NEW USERS</th>
+                            <th style="color: #86868B; font-weight: 600; font-size: 0.75rem;">EST. SAAS REVENUE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var g in _stats.UserGrowthTrend)
+                        {
+                            <tr>
+                                <td class="font-weight-bold">@g.Month 2026</td>
+                                <td class="font-weight-medium text-success">+@g.Count Users</td>
+                                <td class="text-primary font-weight-bold">$@g.Amount.ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private bool _loading = true;
+    private PlatformStatsDto? _stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        var res = await AdminService.GetPlatformStatsAsync();
+        if (res.Success && res.Data != null)
+        {
+            _stats = res.Data;
+        }
+        _loading = false;
+    }
+}

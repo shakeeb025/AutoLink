@@ -1,0 +1,119 @@
+@page "/register-customer"
+@using AutoLink.Shared.DTOs
+@using AutoLink.Client.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>AutoLink | Customer Buyer Registration</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-6 mt-md-12 mb-12">
+    <MudPaper Elevation="0" Class="apple-card pa-8 pa-md-12">
+        <div class="text-center mb-8">
+            <div class="pa-3 rounded-circle d-inline-flex align-center justify-center bg-primary-subtle mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Large" Color="Color.Primary" />
+            </div>
+            <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Create Buyer Account</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Save favorites, get AI match recommendations, and schedule test drives — free forever
+            </MudText>
+        </div>
+
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField T="string"
+                          Label="Full Name"
+                          @bind-Value="_model.FullName"
+                          Required="true"
+                          RequiredError="Full name is required"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3" />
+
+            <MudTextField T="string"
+                          Label="Email Address"
+                          @bind-Value="_model.Email"
+                          Required="true"
+                          RequiredError="Email is required"
+                          InputType="InputType.Email"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3" />
+
+            <MudTextField T="string"
+                          Label="Phone Number (Optional)"
+                          @bind-Value="_model.PhoneNumber"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3" />
+
+            <MudTextField T="string"
+                          Label="City / Region"
+                          @bind-Value="_model.City"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-3" />
+
+            <MudTextField T="string"
+                          Label="Password"
+                          @bind-Value="_model.Password"
+                          Required="true"
+                          RequiredError="Password is required (min 6 characters)"
+                          InputType="InputType.Password"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-6" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Class="apple-btn py-3"
+                       OnClick="SubmitRegisterAsync"
+                       Disabled="@_submitting">
+                @if (_submitting)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <span class="ms-2">Creating Account...</span>
+                }
+                else
+                {
+                    <span>Create Buyer Account</span>
+                }
+            </MudButton>
+        </MudForm>
+
+        <div class="text-center mt-8">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Already have an account? 
+                <MudLink Href="/login" Color="Color.Primary" Class="font-weight-bold">Sign In</MudLink>
+            </MudText>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+    private RegisterCustomerDto _model = new();
+
+    private async Task SubmitRegisterAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _submitting = true;
+        var res = await AuthService.RegisterCustomerAsync(_model);
+        _submitting = false;
+
+        if (res.Success)
+        {
+            Snackbar.Add("Registration successful! Welcome to AutoLink.", Severity.Success);
+            Navigation.NavigateTo("/discovery");
+        }
+        else
+        {
+            Snackbar.Add(res.Message ?? "Registration failed", Severity.Error);
+        }
+    }
+}
